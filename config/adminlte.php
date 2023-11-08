@@ -64,7 +64,7 @@ return [
     */
 
     'logo' => '<b>RRHH JP Ingenieria</b>',
-    'logo_img' => 'vendor/adminlte/dist/img/awl.svg',
+    'logo_img' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlaIDMWY6VjSnZ1BR2kxj2LgyF2SV3gAOc1IURrv0&s',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',    
@@ -86,7 +86,7 @@ return [
     'auth_logo' => [ 
         'enabled' => true,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/logo_awl.png',
+            'path' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlaIDMWY6VjSnZ1BR2kxj2LgyF2SV3gAOc1IURrv0&s',
             'alt' => 'Auth Logo',
             'class' => '',
             'width' => 50,
@@ -109,11 +109,11 @@ return [
     'preloader' => [
         'enabled' => true,
         'img' => [
-            'path' => 'https://mir-s3-cdn-cf.behance.net/project_modules/disp/585d0331234507.564a1d239ac5e.gif',
+            'path' => 'https://i.pinimg.com/originals/62/79/ce/6279ce4af4acbcbffd9a7023eeec9675.gif',
             'alt' => 'AdminLTE Preloader Image',
             'effect' => 'animation__shake',
-            'width' => 200,
-            'height' => 200,
+            'width' => 600,
+            'height' => 400,
         ],
     ],
 
@@ -168,11 +168,11 @@ return [
     */
 
     'classes_auth_card' => '',
-    'classes_auth_header' => 'bg-gradient-success',
+    'classes_auth_header' => 'bg-gradient-primary',
     'classes_auth_body' => '',
     'classes_auth_footer' => '',
-    'classes_auth_icon' => 'fa-lg text-success',
-    'classes_auth_btn' => 'btn-flat btn-success',
+    'classes_auth_icon' => 'fa-lg text-primary',
+    'classes_auth_btn' => 'btn-flat btn-primary',
 
     /*
     |--------------------------------------------------------------------------
