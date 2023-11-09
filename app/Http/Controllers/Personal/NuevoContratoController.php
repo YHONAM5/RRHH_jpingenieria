@@ -100,7 +100,7 @@ class NuevoContratoController extends Controller
         $fechaactual->locale('es');
         $fechaFormateada = $fechaactual->isoFormat('DD [DE] MMMM [DE] YYYY');
  
-         $plantillaAWL = storage_path('app/public/docs/contratoAWL.docx');
+         $plantillaAWL = storage_path('app/public/docs/contratoJP.docx');
  
   
              $template = new TemplateProcessor($plantillaAWL);

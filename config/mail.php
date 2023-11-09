@@ -37,11 +37,11 @@ return [
         'smtp' => [
         'transport' => 'smtp',
         'url' => env('MAIL_URL'),
-        'host' => 'mail.awlmaquitec.com', // Cambiar a tu host deseado
+        'host' => 'mail.ntchosting.com', // Cambiar a tu host deseado
         'port' => 465, // Cambiar al puerto deseado
         'encryption' => 'ssl', // Cambiar al tipo de cifrado deseado
-        'username' => 'recursoshumanos@awlmaquitec.com', // Cambiar al nombre de usuario deseado
-        'password' => '%29592026%', // Cambiar a tu contraseña deseada
+        'username' => 'rrhh@jpingenieria.pe', // Cambiar al nombre de usuario deseado
+        'password' => 'rrhh2959%RRHH%', // Cambiar a tu contraseña deseada
         'timeout' => null,
         'local_domain' => env('MAIL_EHLO_DOMAIN'),
     ],
