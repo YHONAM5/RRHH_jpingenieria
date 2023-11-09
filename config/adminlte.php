@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'title' => 'AWL Maquitec',
+    'title' => 'JP Ingenieria',
     'title_prefix' => '',
     'title_postfix' => '',
 
