@@ -409,7 +409,12 @@ return [
         [
             'text' => 'Cargos',
             'url'  => 'cargos',
-            'icon' => 'fas fa-fw fa-lock',
+            'icon' => 'fas fa-briefcase',
+        ],
+        [
+            'text' => 'Estaciones de trabajo',
+            'url'  => 'estaciones',
+            'icon' => 'fas fa-building',
         ],
         [
             'header' => 'CONFIGURACION ADMIN',

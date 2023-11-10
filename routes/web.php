@@ -120,6 +120,13 @@ Route::group(['middleware'=> ['auth']], function(){
     Route::post('editar/cargo',[CargoController::class,'editar_cargo'])->name('editar.cargo');
     Route::post('eliminar/cargo',[CargoController::class,'eliminar_cargo']);
 
+     //ESTACION DE TRABAJO
+     Route::get('estaciones',[EstacionTrabajoController::class,'index']);
+     Route::post('estaciones/estado',[EstacionTrabajoController::class,'editar_estado'])->name('editar.estado');
+     Route::post('estaciones/regimen',[EstacionTrabajoController::class,'editar_regimen'])->name('editar.regimen');
+     Route::post('estaciones/nueva',[EstacionTrabajoController::class,'nueva_estacion'])->name('nueva.estacion');
+     Route::post('estacion/eliminar',[EstacionTrabajoController::class,'eliminar_estacion'])->name('');
+
     //PLANILLA
     Route::get('planilla',[PlanillaController::class,'index']);
     Route::post('planilla',[PlanillaController::class,'BuscarPlanilla'])->name('buscar.planilla');
@@ -130,8 +137,7 @@ Route::group(['middleware'=> ['auth']], function(){
     //PREBOLETA
     Route::post('enviar/preboleta',[PreboletaController::class,'enviar_preboleta'])->name('enviar.preboleta');
 
-    //ESTACION DE TRABAJO
-    Route::get('estaciontrabajo',[EstacionTrabajoController::class,'index']);
+   
 
     //CTS
     Route::get('cts',[CtsController::class,'index']);
