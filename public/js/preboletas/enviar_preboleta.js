@@ -1,21 +1,20 @@
 //PASAR URL A FRAME PARA VISTA DE PREBOLETA
 function setIframeSrc(url) {
-    const iframe = document.getElementById('pdfIframe');
-    const emailInput = document.getElementById('email');
-    const urlInput = document.getElementById('url');
-    const mensajeInput = document.getElementById('mensaje');
-    const idPeriodoInput = document.getElementById('idPeriodo');
-    const emailValue = event.target.dataset.email;
-    const mensajeValue = event.target.dataset.mensaje;
-    const idPeriodoValue = event.target.dataset.periodo;
+        const iframe = document.getElementById('pdfIframe');
+        const emailInput = document.getElementById('email');
+        const urlInput = document.getElementById('url');
+        const mensajeInput = document.getElementById('mensaje');
+        const idPeriodoInput = document.getElementById('idPeriodo');
+        const emailValue = event.target.dataset.email;
+        const mensajeValue = event.target.dataset.mensaje;
+        const idPeriodoValue = event.target.dataset.periodo;
 
-    iframe.src = url;
-    emailInput.value = emailValue;
-    urlInput.value = url;
-    mensajeInput.value = mensajeValue;
-    idPeriodoInput.value = idPeriodoValue;
-
-}
+        iframe.src = url;
+        emailInput.value = emailValue;
+        urlInput.value = url;
+        mensajeInput.value = mensajeValue;
+        idPeriodoInput.value = idPeriodoValue;
+    }
 
 //ENVIO DE PREBOLETA AL SERVIDOR
 document.querySelector('#formPreboleta').addEventListener('submit', function (event) {

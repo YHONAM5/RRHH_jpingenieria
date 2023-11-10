@@ -420,14 +420,14 @@
             @endphp
         </td>
         <td style="text-align: right;">
-            {{-- Quinta Categoria --}}
-            @php
-                $quinta_categoria = new \App\Http\Controllers\Planilla\PlanillaController();
-                $quinta_categoria_value = $quinta_categoria->QuintaCategoria($remuneracion_asegurable);
-                echo 'S/' . $quinta_categoria_value;
-                $totalQuinta += $quinta_categoria_value;
-            @endphp
-        </td>
+          {{-- Quinta Categoria --}}
+          @php
+              $quinta_categoria = new \App\Http\Controllers\Planilla\PlanillaController();
+              $quinta_categoria_value = $quinta_categoria->QuintaCategoria($remuneracion_asegurable);
+              echo 'S/' . $quinta_categoria_value;
+              $totalQuinta += $quinta_categoria_value;
+          @endphp
+      </td>
         <td>
             {{-- Devolución de 5ta --}}
         </td>

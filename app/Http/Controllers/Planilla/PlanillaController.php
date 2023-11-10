@@ -223,64 +223,49 @@ class PlanillaController extends Controller
     function QuintaCategoria($sueldo_base)
     {
         $uit = 4950;
-        //$sueldo =15000;
+        //$sueldo = 15000;
         $asignacionFamiliar = 0;
         $sueldoAnual = round($sueldo_base * 12, 2);
         $gratificacion = round(($sueldo_base * 2) + (($sueldo_base * 0.09) * 2), 2);
-
         $totalAnual = $sueldoAnual + $gratificacion;
-
-
         $monto = round($totalAnual - ($uit * 7), 2);
-
         $tramo1 = $uit * 5;
         $tramo1Porcen = $tramo1 * 0.08;
-
         $tramo2 = $uit * 15;
         $tramo2Porcen = $tramo2 * 0.14;
-
         $tramo3 = $uit * 15;
         $tramo3Porcen = $tramo3 * 0.17;
-
         $qcate = 0;
-        //TRAMO 1
+
+        // TRAMO 1
         if ($monto <= (5 * $uit) && $monto > 0) {
-            //echo $monto-$tramo1."<br>";
             $t1 = $monto * 0.08;
             $qcate = round(($t1 / 12), 2);
-            //echo round($qcate,2);
         } else {
-            //TRAMO 2
+            // TRAMO 2
             if ($monto > (5 * $uit) && $monto <= (20 * $uit)) {
                 $monto = $monto - (5 * $uit);
-
                 $t2 = $monto * 0.14;
-
                 $qcate = round(($tramo1Porcen + $t2) / 12, 2);
-                //echo "<br>".$qcate;
             } else {
-                //TRAMO 3
+                // TRAMO 3
                 if ($monto > (20 * $uit) && $monto <= (35 * $uit)) {
                     $monto = $monto - (20 * $uit);
-                    //echo "Diferencia= ".$monto."<br>Tramo 1= ".$tramo1Porcen;
                     $sumatramos = $tramo1Porcen + $tramo2Porcen;
                     $t3 = $monto * 0.17;
-
                     $qcate = round(($sumatramos + $t3) / 12, 2);
-                    //echo "<br>".$qcate;
                 } else {
-                    //TRAMO 4
+                    // TRAMO 4
                     if ($monto > (35 * $uit) && $monto <= (45 * $uit)) {
                         $monto = $monto - ($uit * 35);
                         $sumatramos = $tramo1Porcen + $tramo2Porcen + $tramo3Porcen;
                         $t4 = $monto * 0.2;
                         $qcate = round(($sumatramos + $t4) / 12, 2);
-                        //echo "<br>".$qcate;
                     }
                 }
             }
         }
-        return number_format($qcate, 2);
+        return (double)$qcate;
     }
 
     //FUNCION PARA CALCULAR ADELANTOS

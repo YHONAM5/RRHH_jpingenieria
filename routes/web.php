@@ -116,6 +116,9 @@ Route::group(['middleware'=> ['auth']], function(){
     
     //CARGOS
     Route::get('cargos',[CargoController::class,'index']);
+    Route::post('nuevo/cargo',[CargoController::class,'nuevo_cargo'])->name('nuevo.cargo');
+    Route::post('editar/cargo',[CargoController::class,'editar_cargo'])->name('editar.cargo');
+    Route::post('eliminar/cargo',[CargoController::class,'eliminar_cargo']);
 
     //PLANILLA
     Route::get('planilla',[PlanillaController::class,'index']);

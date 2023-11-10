@@ -10,7 +10,7 @@
             <h2><b>LISTADO DE PERSONAL ACTIVO</b></h2>
         </div>
         <div class="col-md-6 text-right">
-            <button class="btn btn-success">Personal Inactivo <i class="fas fa-eye"></i></button>
+            <button class="btn btn-primary">Personal Inactivo <i class="fas fa-eye"></i></button>
         </div>
     </div>
 @stop
@@ -18,14 +18,14 @@
 @section('content')
 
         <div class="card">
-            <div class="card-header bg-success">
+            <div class="card-header bg-primary">
 
             </div>
             <div class="card-body">
                 {{-- PERSONAL--}}
                         <table id="tabla-Empleados" class="table table-striped table-hover">
                             <thead>
-                                <tr class="bg-success">
+                                <tr class="bg-primary">
                                     <th>#</th>
                                     <th>Nombres y Apellidos</th>
                                     <th>Cargo</th>
