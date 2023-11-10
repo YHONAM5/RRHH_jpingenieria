@@ -416,7 +416,7 @@ return [
             'url'  => 'estaciones',
             'icon' => 'fas fa-building',
         ],
-        [
+       /* [
             'header' => 'CONFIGURACION ADMIN',
             'can' => ['role-list', 'role-create', 'role-edit', 'role-delete', 'user-list']
         ],
@@ -431,7 +431,7 @@ return [
             'url'  => 'roles',
             'icon' => 'fas fa-fw fa-lock',
             'can' => ['role-list', 'role-create', 'role-edit', 'role-delete']
-        ]
+        ]*/
     ],
 
     /*
