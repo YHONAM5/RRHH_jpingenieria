@@ -364,12 +364,8 @@ return [
             'icon'    => 'fas fa-diagnoses',
             'submenu' => [
                 [
-                    'text' => 'Cursos de personal',
-                    'url'  => '#',
-                ],
-                [
-                    'text'    => 'Examenes medicos',
-                    'url'     => '#',
+                    'text' => 'Cursos y examenes',
+                    'url'  => 'habilitaciones',
                 ],
             ],
         ],
