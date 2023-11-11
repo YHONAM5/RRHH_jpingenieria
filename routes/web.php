@@ -50,6 +50,7 @@ Route::group(['middleware'=> ['auth']], function(){
     Route::get('personal/contrato/{idContrato}',[PersonalController::class, 'contrato']);
     Route::get('personal/perfil/{idContrato}',[PersonalController::class, 'perfil']);
     Route::post('personal/info',[PersonalController::class, 'obtenerDatosPersona'])->name('verPersona');
+    Route::post('perfil/subir/contrato',[PersonalController::class, 'perfil_subircontrato']);
         //Personal documentos
         //Contratos
         Route::post('personal/guardarContrato',[PersonalController::class, 'guardarDocContrato'])->name('guardarDocContra');

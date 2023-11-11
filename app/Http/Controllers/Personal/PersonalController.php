@@ -533,5 +533,34 @@ class PersonalController extends Controller
             return response()->json(['error' => $error], 500);
         }
     }
+
+    //SUBIR CONTRATO POR MEDIO DE PERFIL
+    public function perfil_subircontrato(Request $request)
+    {
+        try {
+            $request->validate([
+                'documento' => 'mimes:pdf',
+            ], [
+                'documento.mimes' => 'El campo :attribute debe ser un archivo PDF.'
+            ], [
+                'documento' => 'Documento',
+            ]);
+
+            $idContrato = $request->input('id_contrato');
+            $documento = $request->input('documento');
+
+
+            if ($request->hasFile('documento')) {
+                $contrato = Contrato::find($idContrato);
+                $contrato->contratopdf = $request->file('documento')->store('contratos', 'public');
+                $contrato->save();
+            }
+
+            return response()->json(['mensaje' => 'Registro guardado con éxito']);
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+            return response()->json(['error' => $error], 500);
+        }
+    }
 }
 

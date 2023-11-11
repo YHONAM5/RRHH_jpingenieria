@@ -133,11 +133,14 @@
     </div>
   @include('rrhh.personal.profile.modales.datos_personales')
   @include('rrhh.personal.profile.modales.datos_profesionales')
+  @include('rrhh.personal.modales.subirContrato')
+  @include('rrhh.personal.modales.modalperfil')
 @stop
 
 @section('js')
 <script src="{{ asset('js/contratos/opciones.js') }}"></script>
 <script src="{{ asset('js/personal/editar_datos.js') }}"></script>
+<script src="{{ asset('js/personal/modales.js') }}"></script>
 <script>
    const csrfToken = "{{ csrf_token() }}";
 </script>

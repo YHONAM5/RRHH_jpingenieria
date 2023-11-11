@@ -316,4 +316,57 @@ $(document).ready(function(){
         });
     });
 
+      //SUBIR CONTRATO DESDE PERFIL
+      $(document).ready(function() {
+        $('.btnPerfilContratoOpen').on('click', function(event) {
+            event.preventDefault(); // Evitar el comportamiento predeterminado del evento click
+            var idContrato = $(this).data('idcontrato');
+            $('#idContratoPerfil').val(idContrato);
+            console.log(idContrato)
+        });
+    
+        $('#btnPerfilContrato').click(function(event) {
+            event.preventDefault(); // Evitar el comportamiento predeterminado del evento click
+            
+            
+            const formData = new FormData($('#pefilContrato')[0]);
+        
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            });
+        
+            $.ajax({
+                url: '/perfil/subir/contrato',
+                method: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(rpta) {
+                    Swal.fire({
+                        title: 'EXITO',
+                        text: rpta.mensaje,
+                        icon: 'success',
+                        confirmButtonText: 'Aceptar'
+                    }).then(function() {
+                        location.reload();
+                    });
+                },
+                error: function(xhr, status, error) {
+                    const errorMessage = xhr.responseText;
+                    const errorObj = JSON.parse(errorMessage);
+                    
+                    Swal.fire({
+                        title: 'ATENCION',
+                        text: errorObj.error,
+                        icon: 'error',
+                        confirmButtonText: 'Aceptar'
+                    });
+                }
+            });
+        });
+    });
+
+
 });
