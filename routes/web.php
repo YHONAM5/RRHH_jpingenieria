@@ -51,6 +51,8 @@ Route::group(['middleware'=> ['auth']], function(){
     Route::get('personal/perfil/{idContrato}',[PersonalController::class, 'perfil']);
     Route::post('personal/info',[PersonalController::class, 'obtenerDatosPersona'])->name('verPersona');
     Route::post('perfil/subir/contrato',[PersonalController::class, 'perfil_subircontrato']);
+    Route::post('perfil/eliminar/contrato',[PersonalController::class,'perfil_eliminarcontrato']);
+    Route::post('perfil/editar/fecha',[PersonalController::class,'perfil_editarfecha']);
         //Personal documentos
         //Contratos
         Route::post('personal/guardarContrato',[PersonalController::class, 'guardarDocContrato'])->name('guardarDocContra');

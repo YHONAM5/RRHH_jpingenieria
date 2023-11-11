@@ -534,7 +534,7 @@ class PersonalController extends Controller
         }
     }
 
-    //SUBIR CONTRATO POR MEDIO DE PERFIL
+    ///SUBIR CONTRATO POR MEDIO DE PERFIL
     public function perfil_subircontrato(Request $request)
     {
         try {
@@ -555,6 +555,41 @@ class PersonalController extends Controller
                 $contrato->contratopdf = $request->file('documento')->store('contratos', 'public');
                 $contrato->save();
             }
+
+            return response()->json(['mensaje' => 'Registro guardado con éxito']);
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+            return response()->json(['error' => $error], 500);
+        }
+    }
+
+    public function perfil_eliminarcontrato(Request $request)
+    {
+        try {
+            $idContrato = $request->input('id');
+    
+            $contrato = Contrato::find($idContrato);
+            $contrato->contratopdf = NULL;
+            $contrato->save();
+    
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function perfil_editarfecha(Request $request)
+    {
+        try {
+            $idContrato = $request->input('id_contrato');
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
+
+                $contrato = Contrato::find($idContrato);
+                $contrato->FechaDeInicioDeContrato  = $fecha_inicio;
+                $contrato->FechaDeFinDeContrato  = $fecha_fin;
+                $contrato->save();
+            
 
             return response()->json(['mensaje' => 'Registro guardado con éxito']);
         } catch (\Exception $e) {

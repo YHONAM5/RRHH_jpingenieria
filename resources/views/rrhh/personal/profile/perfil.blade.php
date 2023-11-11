@@ -131,10 +131,11 @@
         @include('rrhh.personal.profile.complementos.documentos')
       </div>
     </div>
-  @include('rrhh.personal.profile.modales.datos_personales')
-  @include('rrhh.personal.profile.modales.datos_profesionales')
-  @include('rrhh.personal.modales.subirContrato')
-  @include('rrhh.personal.modales.modalperfil')
+    @include('rrhh.personal.profile.modales.datos_personales')
+    @include('rrhh.personal.profile.modales.datos_profesionales')
+    @include('rrhh.personal.modales.subirContrato')
+    @include('rrhh.personal.modales.modalperfil')
+    @include('rrhh.personal.modales.editarFechaContrato')
 @stop
 
 @section('js')
