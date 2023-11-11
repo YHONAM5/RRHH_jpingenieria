@@ -61,6 +61,8 @@ class EditarDatosController extends Controller
         try {
             $idPersona = $request->input('idPersona');
             $idContrato = $request->input('idContrato');
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
             $idCargo = $request->input('cargo');
             $idfondo = $request->input('fondo_pension');
             $idEstacion = $request->input('estacion_trabajo');
@@ -73,6 +75,8 @@ class EditarDatosController extends Controller
             $empleado->save();
     
             $contrato = Contrato::find($idContrato);
+            $contrato->FechaDeInicioDeContrato = $fecha_inicio;
+            $contrato->FechaDeFinDeContrato = $fecha_fin;
             $contrato->idEstacionTrabajo = $idEstacion;
             $contrato->save();
     
