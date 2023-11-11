@@ -59,6 +59,7 @@
 
         <button type="submit" class="btn btn-success mt-4">Registrar</button>
       </form>
+      @include('rrhh.habilitaciones.complementos.listado')
     </div>
     
     {{-- EXAMENES --}}
@@ -99,5 +100,6 @@
 
         <button type="submit" class="btn btn-success mt-4">Registrar</button>
       </form>
+      @include('rrhh.habilitaciones.complementos.listado')
     </div>
   </div>
