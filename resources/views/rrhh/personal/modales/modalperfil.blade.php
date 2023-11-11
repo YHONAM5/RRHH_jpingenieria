@@ -7,7 +7,7 @@
         <!-- ... -->
       <div class="modal-body">
         <form id="pefilContrato" enctype="multipart/form-data">
-          <input id="idContratoPerfil" name="id_contrato">
+          <input hidden id="idContratoPerfil" name="id_contrato">
           <div class="form-group">
             <label for="">Documento: <span class="text-danger">*</span></label>
             <input class="form-control" type="file" name="documento">
