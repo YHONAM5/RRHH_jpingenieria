@@ -46,13 +46,20 @@ class HabilitacionesController extends Controller
         ->where('empleado.idEmpleado',$idEmpleado)
         ->first();
 
+        $listado_cursos = CursoEmpleado::join('empleado','curso_empleado.idEmpleado','=','empleado.idEmpleado')
+                                ->join('cursodehabilitacion','curso_empleado.idCursoDeHabilitacion','=','cursodehabilitacion.idCursoDeHabilitacion')    
+                                ->where('curso_empleado.idEmpleado',$idEmpleado)->get();
+        $listado_examenes = Examenmedico::join('tipoexamenmedico','examenmedico.idTipoDeExamenMedico','=','tipoexamenmedico.idTipoExamenMedico')
+                                        ->join('empleado','examenmedico.idEmpleado','=','empleado.idEmpleado')  
+                                        ->where('examenmedico.idEmpleado',$idEmpleado)->get();
+
         $estaciones = Estaciondetrabajo::all();
         $cursos = Cursodehabilitacion::join('curso_estacion','cursodehabilitacion.idCursoDeHabilitacion','=','curso_estacion.id_cursodehabilitacion')->get();
         $cursos_empleado = Cursodehabilitacion::join('curso_estacion','cursodehabilitacion.idCursoDeHabilitacion','curso_estacion.id_cursodehabilitacion')
                                     ->where('curso_estacion.id_estacionTrabajo',$empleado->idEstacionDeTrabajo)->get();
         $examenes = Tipoexamenmedico::all();
         if ($empleado !== null) {
-            return view('rrhh.habilitaciones.index', compact('empleados', 'empleado', 'estaciones','cursos','cursos_empleado','examenes'));
+            return view('rrhh.habilitaciones.index', compact('empleados', 'empleado', 'estaciones','cursos','cursos_empleado','examenes','listado_cursos','listado_examenes'));
         } else {
             return view('rrhh.habilitaciones.index', compact('empleados','estaciones','cursos'));
         }
