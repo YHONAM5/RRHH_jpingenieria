@@ -10,19 +10,19 @@ use Illuminate\Queue\SerializesModels;
 class Notification extends Mailable
 {
     use Queueable, SerializesModels;
-    public $data=[];
+    public $data = [];
 
-    public function __construct( $data)
+    public function __construct($data)
     {
-        $this->data= $data;
+        $this->data = $data;
 
     }
 
     public function build()
-{
-    return $this->from('recursoshumanos@awlmaquitec.com', 'RRHH AWL Maquitec.')
-    ->subject($this->data["subject"])
-        ->view('rrhh.preboleta.plantilla_email')
-        ->with("data",$this->data);
-}
+    {
+        return $this->from('rrhh@jpingenieria.pe', 'RRHH AWL Maquitec.')
+            ->subject($this->data["subject"])
+            ->view('rrhh.preboleta.plantilla_email')
+            ->with("data", $this->data);
+    }
 }
