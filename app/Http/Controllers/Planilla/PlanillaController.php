@@ -146,7 +146,7 @@ class PlanillaController extends Controller
             ->where('idCondicionDeTareo', 8)
             ->get();
         $feriados_trabajados = $feriados->count();
-        return ($feriados_trabajados);
+        return $feriados_trabajados;
     }
 
     //FUNCION PARA CALCULAR DESCANSOS TRABAJADOS

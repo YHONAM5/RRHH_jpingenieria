@@ -86,7 +86,7 @@
             </tr>
             <tr>
                 @foreach ($estaciones as $item)
-                <th class="th3 p-1 text-center align-middle thHeader">{{ $item->NombreEstacionDeTrabajo }}</th> 
+                  <th class="th3 p-1 text-center align-middle thHeader">{{ $item->NombreEstacionDeTrabajo }}</th> 
                 @endforeach
             </tr>
             <tbody>
@@ -165,7 +165,7 @@
                      {{-- Dias con goce de haber --}}
                      @php
                      $dias_con_goce = new \App\Http\Controllers\Planilla\PlanillaController();
-                     $dias_con_goce_dias = $dias_con_goce->DiasConGoce($item->idContrato, $dia_inicio, $dia_fin);
+                     $dias_con_goce_dias = $dias_con_goce->DiasConGoce($idContrato, $dia_inicio, $dia_fin);
                      $dias_con_goce_haber = round(($dato_contable->SueldoBase/$num_dias)*$dias_con_goce_dias,2);
                      echo 'S/'.$dias_con_goce_haber;   
                      @endphp
@@ -177,7 +177,7 @@
                       {{-- Descanso Medico --}}
                       @php
                       $descanso_medico = new \App\Http\Controllers\Planilla\PlanillaController();
-                      $descanso_medico_dias = $descanso_medico->DescansoMedico($item->idContrato, $dia_inicio, $dia_fin);
+                      $descanso_medico_dias = $descanso_medico->DescansoMedico($idContrato, $dia_inicio, $dia_fin);
                       $descanso_medico = round(($dato_contable->SueldoBase/$num_dias)*$descanso_medico_dias,2);
                       echo 'S/'.$descanso_medico;   
                       @endphp
@@ -204,11 +204,13 @@
                     <td class="tdDetalle">
                       {{-- Feriados trabajados --}}
                       @php
-                      $feriados_trabajados = new \App\Http\Controllers\Planilla\PlanillaController();
-                      $feriados_trabajados_dias = $feriados_trabajados->FeriadosTrabajados($item->idContrato, $dia_inicio, $dia_fin);
-                      $feriados_trabajados = round(($dato_contable->SueldoBase/$num_dias)*$feriados_trabajados_dias,2);
-                      echo 'S/'.$feriados_trabajados;   
+                          $feriados_trabajados = new \App\Http\Controllers\Planilla\PlanillaController();
+                          $feriados_trabajados_dias = $feriados_trabajados->FeriadosTrabajados($idContrato, $dia_inicio, $dia_fin);
+                          $feriado = round(($dato_contable->SueldoBase/$num_dias) * $feriados_trabajados_dias, 2);
+                          echo 'S/'.$feriado;
+                    
                       @endphp
+                      
                     </td>
                   </tr>
                   <tr>
@@ -228,7 +230,7 @@
                    {{-- Descansos trabajados --}}
                    @php
                     $descansos_trabajados = new \App\Http\Controllers\Planilla\PlanillaController();
-                    $descansos_trabajados_dias = $descansos_trabajados->DescansosTrabajados($item->idContrato, $dia_inicio, $dia_fin);
+                    $descansos_trabajados_dias = $descansos_trabajados->DescansosTrabajados($idContrato, $dia_inicio, $dia_fin);
                     $descansos_trabajados = round(($dato_contable->SueldoBase/$num_dias)*$descansos_trabajados_dias,2);
                     echo 'S/'.$descansos_trabajados;   
                    @endphp
@@ -251,7 +253,7 @@
               <div class="box2">
               {{-- Total remuneracion --}}
               @php
-              $remuneracion_asegurable = round(($sueldo_bruto + $dias_pendientes + $descanso_medico + $dias_con_goce_haber+ $vacaciones + $feriados_trabajados + $descansos_trabajados + $asignacion_familiar_value + $horas_extras_value),2);
+              $remuneracion_asegurable = round(($sueldo_bruto + $dias_pendientes + $descanso_medico + $dias_con_goce_haber+ $vacaciones + $feriado + $descansos_trabajados + $asignacion_familiar_value + $horas_extras_value),2);
               echo 'S/'.$remuneracion_asegurable;
               @endphp
               </div>
