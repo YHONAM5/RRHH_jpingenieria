@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="css/preboleta.css">
+    <link rel="stylesheet" href="css/preboleta1.css">
     <title>Pre boleta trabajadores</title>
 </head>
 <body class="body" id="body">
@@ -14,7 +14,7 @@
         <div class="header">
           <div class="img">
             {{-- LOGO --}}
-            <img src="/public/img/logo_awl.png" alt="Logo AWL">
+            <img src="/public/img/logo_awl.png" alt="Logo JP">
           </div>
           <center>
             <h3>DETALLE DE PAGO<br>{{ $periodo->NombrePeriodo }}</h3>
@@ -29,10 +29,10 @@
             </tr>
             <tbody>
               <tr>
-                <td class="tdBody">205587733218</td>
-                <td class="tdBody">AWL MAQUITEC S.A.C</td>
+                <td class="tdBody">20454300654</td>
+                <td class="tdBody">JP INGENIERIA Y SERVICIOS S.R.L.</td>
                 <td class="tdBody">
-                Huacho Nro 219 Urb. San Martin de Socabaya. Arequipa
+                Jr Ancash 304 Alto Libertad - Cerro Colorado. Arequipa
                 </td>
               </tr>
             </tbody>
