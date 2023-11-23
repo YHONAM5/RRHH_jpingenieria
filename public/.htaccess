@@ -19,3 +19,18 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+# -FrontPage-
+
+IndexIgnore .htaccess */.??* *~ *# */HEADER* */README* */_vti*
+
+<Limit GET POST>
+order deny,allow
+deny from all
+allow from all
+</Limit>
+<Limit PUT DELETE>
+order deny,allow
+deny from all
+</Limit>
+AuthUserFile /services/users//zstorage7p1/jpingenieria//www/recursoshumanos.jpingenieria.pe/public/_vti_pvt/service.pwd
+AuthGroupFile /services/users//zstorage7p1/jpingenieria//www/recursoshumanos.jpingenieria.pe/public/_vti_pvt/service.grp
