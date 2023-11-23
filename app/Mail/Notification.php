@@ -20,7 +20,7 @@ class Notification extends Mailable
 
     public function build()
     {
-        return $this->from('rrhh@jpingenieria.pe', 'RRHH AWL Maquitec.')
+        return $this->from('rrhh@jpingenieria.pe', 'RRHH JP Ingenieria y Servicios.')
             ->subject($this->data["subject"])
             ->view('rrhh.preboleta.plantilla_email')
             ->with("data", $this->data);
