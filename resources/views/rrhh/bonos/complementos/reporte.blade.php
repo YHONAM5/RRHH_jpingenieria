@@ -1,0 +1,66 @@
+<div class="card">
+    <div class="card-header bg-info">
+        Reporte de bonos
+    </div>
+    <div class="card-body">
+        <form id="form-bonos" action="{{ route('buscar.bono') }}" method="POST">
+            @csrf
+            <div class="form-group">
+                <label for="">Seleccione periodo:</label>
+                <select class="form-control" name="periodo" id="" onchange="this.form.submit()">
+                    <option hidden value="">Seleccione</option>
+                    @foreach ($periodos as $item)
+                        <option value="{{ $item->idPeriodo }}">{{ $item->NombrePeriodo }}</option>  
+                    @endforeach
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header bg-info">
+        <b>Bonos para el periodo</b>
+    </div>
+    @if (isset($bonos) && count($bonos) > 0) 
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <table class="table table-bordered table-hover" id="tabla-bonos">
+                        <thead>
+                            <tr class="bg-warning text-center"> 
+                                <th colspan="6">BONOS</th> <!-- Cambiado de 5 a 6 -->
+                            </tr>
+                            <tr>
+                                <th>#</th>
+                                <th>Nombres</th>
+                                <th>Reintegro</th>
+                                <th>Bono Declarado</th> <!-- Nueva columna -->
+                                <th>Acci車n</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($bonos as $item)
+                                <tr>
+                                    <td>{{ $loop->iteration }}</td>
+                                    <td>{{ $item->Nombres }}</td>
+                                    <td>{{ $item->Reintegro }}</td>
+                                    <td>{{ $item->BonoDeclarado }}</td> <!-- Mostrar Bono Declarado -->
+                                    <td class="text-center">
+                                        <button data-id="{{ $item->idBonos }}" class="btn btn-danger btn-sm btn-eliminar-bono"><i class="fas fa-trash"></i></button>
+                                        <a href="{{ route('detalles.bono', ['idPersona' => $item->idPersona, 'idPeriodo' => $idPeriodo]) }}" class="btn btn-info btn-sm"><i class="fas fa-info-circle"></i></a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @else
+        <div class="card-body">
+            <div class="alert alert-primary">
+                No se encontraron resultados
+            </div>
+        </div>
+    @endif
+</div>

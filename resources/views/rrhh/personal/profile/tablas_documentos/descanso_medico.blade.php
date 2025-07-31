@@ -17,7 +17,7 @@
                     <td>{{ date('d/m/Y',strtotime($dm->FechaDeInicioDescansoMedico)) }}</td>
                     <td>{{ date('d/m/Y',strtotime($dm->FechaDeFinDescansoMedico)) }}</td>
                     <td>
-                        <a class="btn btn-light" href="{{ asset('storage').'/'.$item->documento }}" target="_blank">Ver documento</a>
+                        <a class="btn btn-light" href="{{ asset('storage').'/'.$dm->documento }}" target="_blank">Ver documento</a>
                     </td>
                 </tr>
         @endforeach

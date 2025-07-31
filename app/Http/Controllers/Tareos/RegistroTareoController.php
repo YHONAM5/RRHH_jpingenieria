@@ -143,7 +143,7 @@ class RegistroTareoController extends Controller
                         $condicion_tareo = 1;
                     }
                     $tareo = new Tareo;
-                    $tareo->idContrato = $idContrato;
+                      $tareo->idContrato = $idContrato;
                     $tareo->idDatoContable = $iddatoscontables->idDatosContables;
                     $tareo->Fecha = $fecha;
                     $tareo->HoraDeIngreso = $hora_ingreso;

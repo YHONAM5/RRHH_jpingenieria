@@ -3,6 +3,7 @@
 use App\Http\Controllers\Cargo\CargoController;
 use App\Http\Controllers\CTS\CtsController;
 use App\Http\Controllers\CumplimientosLegales\CumplimientosLegalesController;
+use App\Http\Controllers\Bonos\BonosController;
 use App\Http\Controllers\Descuentos\DescuentosController;
 use App\Http\Controllers\EstacionTrabajo\EstacionTrabajoController;
 use App\Http\Controllers\Personal\PersonalController;
@@ -47,6 +48,21 @@ Route::group(['middleware'=> ['auth']], function(){
     Route::resource('users',UserController::class);
     //Personal
     Route::get('personal',[PersonalController::class, 'verPersonal']);
+    //vista de personal inactivo
+    Route::get('personal/personalInactivo',[PersonalController::class, 'personalInactivo']);
+    Route::get('personal/listarPerfiles',[PersonalController::class, 'listarPerfiles']);
+    
+    // Candidatos
+    Route::prefix('candidatos')->name('candidatos.')->group(function () {
+	    Route::get('/', [App\Http\Controllers\Personal\CandidatoController::class, 'index'])->name('index');
+	    Route::get('create', [App\Http\Controllers\Personal\CandidatoController::class, 'create'])->name('create');
+	    Route::post('store', [App\Http\Controllers\Personal\CandidatoController::class, 'store'])->name('store');
+	    Route::get('show/{id}', [App\Http\Controllers\Personal\CandidatoController::class, 'show'])->name('show');
+	    Route::get('edit/{id}', [App\Http\Controllers\Personal\CandidatoController::class, 'edit'])->name('edit');
+	    Route::put('update/{id}', [App\Http\Controllers\Personal\CandidatoController::class, 'update'])->name('update');
+	    Route::delete('destroy/{id}', [App\Http\Controllers\Personal\CandidatoController::class, 'destroy'])->name('destroy');
+	});
+    // aqui acaba la vista de prueba
     Route::get('personal/contrato/{idContrato}',[PersonalController::class, 'contrato']);
     Route::get('personal/perfil/{idContrato}',[PersonalController::class, 'perfil']);
     Route::post('personal/info',[PersonalController::class, 'obtenerDatosPersona'])->name('verPersona');
@@ -108,6 +124,17 @@ Route::group(['middleware'=> ['auth']], function(){
     Route::post('descuentos',[DescuentosController::class,'buscar_descuentos'])->name('buscar.descuento');
     Route::post('descuentos/registro',[DescuentosController::class,'registro_descuento'])->name('registro.descuento');
     Route::post('descuentos/eliminar',[DescuentosController::class,'eliminar_descuento']);
+    Route::get('descuentos/detalles/{idPersona}/{idPeriodo}', [DescuentosController::class, 'detallesDescuento'])->name('detalles.descuento');
+    Route::get('descuentos/detalles/pdf/{idPersona}/{idPeriodo}', [DescuentosController::class, 'descargarPdf'])->name('descargar.pdf');
+    
+    // bono
+    Route::get('bonos', [BonosController::class, 'index']);
+    Route::post('bonos', [BonosController::class, 'buscar_bonos'])->name('buscar.bono');
+    Route::post('bonos/registro', [BonosController::class, 'registro_bono'])->name('registro.bono');
+    Route::post('bonos/eliminar', [BonosController::class, 'eliminar_bono']);
+    Route::get('bonos/detalles/{idPersona}/{idPeriodo}', [BonosController::class, 'detalles'])->name('detalles.bono');
+
+    
 
 
     //HABILITACIONES

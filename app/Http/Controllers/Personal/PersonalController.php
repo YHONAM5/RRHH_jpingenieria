@@ -25,6 +25,7 @@ use Exception;
 use Illuminate\Http\Request;
 use League\CommonMark\Node\Block\Document;
 use Storage;
+use Carbon\Carbon;
 
 class PersonalController extends Controller
 {
@@ -43,6 +44,70 @@ class PersonalController extends Controller
 
         return view('rrhh.personal.index', compact('empleados','estaciones','tipo_documentos'));
     }
+
+
+
+// PERSONAL INACTIVO
+
+public function personalInactivo() {
+    $empleadosInactivos = Persona::join('empleado', 'persona.idPersona', '=', 'empleado.idPersona')
+        ->join('cargo', 'cargo.idCargo', '=', 'empleado.idCargo')
+        ->join('contrato', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+        ->join('estaciondetrabajo', 'estaciondetrabajo.idEstacionDeTrabajo', '=', 'contrato.idEstacionTrabajo')
+        ->where('contrato.idCondicionDeContrato', 0) // Cambiamos a 0 para empleados inactivos
+        ->get();
+
+    // Obtener descansos médicos para cada empleado inactivo
+    foreach ($empleadosInactivos as $empleado) {
+        $empleado->descansosMedicos = Descansomedico::where('idContrato', $empleado->idContrato)->get();
+        $empleado->licenciasConGoce = Licenciacongocedehaber::where('idContrato', $empleado->idContrato)->get();
+        $empleado->licenciasSinGoce = Licenciasingocedehaber::where('idContrato', $empleado->idContrato)->get();
+    }
+
+    $estaciones = Estaciondetrabajo::all();
+
+    return view('rrhh.personal.profile.personalInactivo', compact('empleadosInactivos', 'estaciones'));
+}
+
+public function listarPerfiles() {
+    // Obtener información de las personas
+    $perfiles = Persona::join('empleado', 'empleado.idPersona', '=', 'persona.idPersona')
+        ->join('cargo', 'cargo.idCargo', '=', 'empleado.idCargo')
+        ->join('contrato', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+        ->join('estaciondetrabajo', 'estaciondetrabajo.idEstacionDeTrabajo', '=', 'contrato.idEstacionTrabajo')
+        ->join('datoscontables', 'contrato.idContrato', '=', 'datoscontables.idContrato')
+        ->join('fondodepension', 'empleado.idFondodepension', '=', 'fondodepension.idFondodepension')
+        ->join('tipodesangre', 'persona.idTipoDeSangre', '=', 'tipodesangre.idTipoDeSangre')
+        ->select('persona.*')
+        ->get();
+
+    // Obtener información de licencias y descansos médicos para cada perfil
+    foreach ($perfiles as $perfil) {
+        $perfil->licenciasSinGoceDeHaber = Tareo::join('licenciasingocedehaber', 'tareo.idLicenciaSinGoceDeHaber', '=', 'licenciasingocedehaber.idLicenciaSinGoceDeHaber')
+            ->where('tareo.idContrato', $perfil->idContrato)
+            ->select('licenciasingocedehaber.FechaDeInicioSinGoceDeHaber', 'licenciasingocedehaber.FechaDeFinSinGoceDeHaber')
+            ->distinct()
+            ->get();
+
+        $perfil->licenciasConGoceDeHaber = Tareo::join('licenciacongocedehaber', 'tareo.idLicenciaConGoceDeHaber', '=', 'licenciacongocedehaber.idLicenciaConGoceDeHaber')
+            ->where('tareo.idContrato', $perfil->idContrato)
+            ->select('licenciacongocedehaber.FechaDeInicioConGoceDeHaber', 'licenciacongocedehaber.FechaDeFinConGoceDeHaber')
+            ->distinct()
+            ->get();
+
+        $perfil->descansosMedicos = Tareo::join('descansomedico', 'tareo.idDescansoMedico', '=', 'descansomedico.idDescansoMedico')
+            ->where('tareo.idContrato', $perfil->idContrato)
+            ->select('descansomedico.FechaDeInicioDescansoMedico', 'descansomedico.FechaDeFinDescansoMedico')
+            ->distinct()
+            ->get();
+    }
+
+    return view('rrhh.personal.profile.listarPerfiles', compact('perfiles'));
+}
+
+    // AQUI TERMINA PERSONAL INACTIVO
+
+
 
     public function obtenerDatosPersona(Request $request){
 
@@ -134,7 +199,7 @@ class PersonalController extends Controller
         $fondo_pension = Fondodepension::all();
         $estaciones = Estaciondetrabajo::all();
         $otros_documentos = Documento::where('id_empleado',$persona->idEmpleado)->get();
-        
+
         $licencias_sin= Licenciasingocedehaber::join('tareo', 'licenciasingocedehaber.idLicenciaSinGoceDeHaber', '=', 'tareo.idLicenciaSinGoceDeHaber')
                                 ->where('tareo.idContrato', $idContrato)
                                 ->select('licenciasingocedehaber.FechaDeInicioSinGoceDeHaber', 'licenciasingocedehaber.FechaDeFinSinGoceDeHaber')
@@ -154,14 +219,14 @@ class PersonalController extends Controller
                                             ->get();
 
         $adelantos = Descuento::join('adelanto','descuentos.idAdelantoOCredito','=', 'adelanto.idAdelanto')
-                            ->where('descuentos.idContrato',$idContrato)->get();                   
-        
+                            ->where('descuentos.idContrato',$idContrato)->get();
+
         return view('rrhh.personal.profile.perfil', compact('persona','contratos','licencias_con','licencias_sin','descansos_medicos','tareos','adelantos','otros_documentos','num_contratos','dias_trabajados','tipos_sangre','cargos','fondo_pension','estaciones'));
     }
-    
+
     //DESCANSO MEDICO
     public function descansoMedico(Request $request){
-        
+
         try {
             $request->validate([
                 'documento_descanso' => 'mimes:pdf',
@@ -200,7 +265,7 @@ class PersonalController extends Controller
                 $fechaFin = new DateTime($fechaFin);
 
                 $fechaActual = clone $fechaInicio;
-                
+
                 DB::beginTransaction();
                 //GUARDAMOS DESCANSO MEDICO
                 $descansoMedico = new Descansomedico();
@@ -226,8 +291,8 @@ class PersonalController extends Controller
 
                     $fechaActual->modify('+1 day');
                 }
-                DB::commit();             
-                
+                DB::commit();
+
             }else{
                 return response()->json(['error' => 'Ingrese el documento del Descanso Medico'], 404);
             }
@@ -258,24 +323,24 @@ class PersonalController extends Controller
                 'id_contrato' => 'Numero de Contrato',
                 'estacionTrab' => 'Estacion de Trabajo'
             ]);
-        
+
             if ($request->hasFile('documentoConGoce')) {
                 $archivo = $request->file('documentoConGoce');
                 $path = $archivo->store('public/LicenciaConGoce');
-                
+
                 //OBTENER DATOSCONTABLES por IDCONTRATO
                 $datoContable = Datoscontable::where('idContrato',$request->input('id_contrato'))->first();
 
                 $fechaInicio = $request->input('fecha_inicio');
                 $fechaFin = $request->input('fecha_fin');
-        
+
                 $fechaInicio = new DateTime($fechaInicio);
                 $fechaFin = new DateTime($fechaFin);
-        
+
                 $fechaActual = clone $fechaInicio;
-        
+
                 DB::beginTransaction();
-        
+
                 try {
                     // GUARDAMOS DESCANSO MEDICO
                     $licenciaConGoce = new Licenciacongocedehaber();
@@ -283,7 +348,7 @@ class PersonalController extends Controller
                     $licenciaConGoce->FechaDeFinConGoceDeHaber = $fechaFin->format('Y-m-d');
                     $licenciaConGoce->LinkDelDocumento = $path;
                     $licenciaConGoce->save();
-        
+
                     while ($fechaActual <= $fechaFin) {
                         // REGISTRO DE TAREO Y IDDESCANSOMEDICO
                         $tareo = new Tareo();
@@ -298,10 +363,10 @@ class PersonalController extends Controller
                         $tareo->idLicenciaConGoceDeHaber = $licenciaConGoce->idLicenciaConGoceDeHaber;
                         $tareo->idDatoContable = $datoContable->idDatosContables;
                         $tareo->save();
-        
+
                         $fechaActual->modify('+1 day');
                     }
-        
+
                     DB::commit();
                 } catch (Exception $e) {
                     DB::rollBack();
@@ -312,14 +377,14 @@ class PersonalController extends Controller
             } else {
                 return response()->json(['error' => 'Ingrese el documento del Descanso Medico'], 404);
             }
-        
+
             return response()->json(['mensaje' => 'Descanso Medico guardado Exitosamente']);
         } catch (Exception $e) {
             $error = $e->getMessage();
             return response()->json(['error' => $error], 500);
         }
     }
-    
+
     //LICENCIA SIN GOCE
     public function licenciaSinGoce(Request $request){
         try {
@@ -338,22 +403,22 @@ class PersonalController extends Controller
                 'id_contrato' => 'Numero de Contrato',
                 'estacionTrabajo' => 'Estacion de Trabajo'
             ]);
-        
+
             if ($request->hasFile('documento_sin_goce')) {
-               
+
                 //OBTENER DATOSCONTABLES por IDCONTRATO
                 $datoContable = Datoscontable::where('idContrato',$request->input('id_contrato'))->first();
 
                 $fechaInicio = $request->input('fecha_inicio');
                 $fechaFin = $request->input('fecha_fin');
-        
+
                 $fechaInicio = new DateTime($fechaInicio);
                 $fechaFin = new DateTime($fechaFin);
-        
+
                 $fechaActual = clone $fechaInicio;
-        
+
                 DB::beginTransaction();
-        
+
                 try {
                     // GUARDAMOS DESCANSO MEDICO
                     $licenciaSinGoce = new Licenciasingocedehaber();
@@ -361,7 +426,7 @@ class PersonalController extends Controller
                     $licenciaSinGoce->FechaDeFinSinGoceDeHaber = $fechaFin->format('Y-m-d');
                     $licenciaSinGoce->LinkDelDocumento = $request->file('documento_sin_goce')->store('LicenciaSinGoce', 'public');
                     $licenciaSinGoce->save();
-        
+
                     while ($fechaActual <= $fechaFin) {
                         // REGISTRO DE TAREO Y idLICENCIASINGOCE
                         $tareo = new Tareo();
@@ -376,10 +441,10 @@ class PersonalController extends Controller
                         $tareo->idLicenciaSinGoceDeHaber = $licenciaSinGoce->idLicenciaSinGoceDeHaber;
                         $tareo->idDatoContable = $datoContable->idDatosContables;
                         $tareo->save();
-        
+
                         $fechaActual->modify('+1 day');
                     }
-        
+
                     DB::commit();
                 } catch (Exception $e) {
                     DB::rollBack();
@@ -390,7 +455,7 @@ class PersonalController extends Controller
             } else {
                 return response()->json(['error' => 'Ingrese el documento del Descanso Medico'], 404);
             }
-        
+
             return response()->json(['mensaje' => 'Descanso Medico guardado Exitosamente']);
         } catch (Exception $e) {
             $error = $e->getMessage();
@@ -412,13 +477,13 @@ class PersonalController extends Controller
                 'fecha_fin' => 'Fecha registro',
                 'id_contrato' => 'Numero de Contrato',
             ]);
-    
+
             $idContrato = $request->input('id_contrato');
             $id_tipodocumento = $request->input('tipo_documento');
             $fecha_registro = $request->input('fecha_registro');
             $documento = $request->input('documento');
             $comentario = $request->input('comentario');
-    
+
             $contrato = Contrato::find($idContrato);
             $documentos = new Documento();
             $documentos->id_tipodocumento = $id_tipodocumento;
@@ -426,13 +491,13 @@ class PersonalController extends Controller
             $documentos->fecha_registro = $fecha_registro;
             $documentos->documento = $documento;
             $documentos->comentario = strtoupper($comentario);
-    
+
             if ($request->hasFile('documento')) {
                 $documentos->documento = $request->file('documento')->store('otrosDocumentos', 'public');
             }
-    
+
             $documentos->save();
-    
+
             return response()->json(['mensaje' => 'Registro guardado con éxito']);
         } catch (\Exception $e) {
             $error = $e->getMessage();
@@ -447,7 +512,7 @@ class PersonalController extends Controller
             $fecha_cese = $request->input('fecha_cese');
             $descripcion_cese = $request->input('descripcion_cese');
             $idContrato = $request->input('idContrato');
-    
+
                 $antiguo = Contrato::where('idContrato', $idContrato)->first();
                 $antiguo->FechaDeFinDeContrato = $fecha_cese;
                 if ($antiguo != null) {
@@ -457,7 +522,7 @@ class PersonalController extends Controller
                 $antiguo->idMotivoDeCese = $motivo;
                 $antiguo->save();
 
-    
+
             return redirect()->back()->with('success_cesecontrato', ' Se registró exitosamente.');
         } catch (\Exception $e) {
             // Manejo de la excepción
@@ -471,7 +536,7 @@ class PersonalController extends Controller
             $motivo = $request->input('motivo');
             $descripcion_cese = $request->input('descripcion_cese');
             $idContrato = $request->input('idContrato');
-    
+
             $antiguo = Contrato::where('idContrato', $idContrato)->first();
             if ($antiguo != null) {
                 $antiguo->DetalleCese = $descripcion_cese;
@@ -479,7 +544,7 @@ class PersonalController extends Controller
                 $antiguo->idMotivoDeCese = $motivo;
                 $antiguo->save();
             }
-    
+
             return redirect()->back()->with('success_fincontrato', 'Se registró exitosamente.');
         } catch (\Exception $e) {
             // Manejo de la excepción
@@ -496,17 +561,17 @@ class PersonalController extends Controller
             $num_hijos = $request->input('num_hijos');
             $cargo = $request->input('cargo');
             $idContrato = $request->input('idContrato');
-    
+
             $empleado = Contrato::where('idContrato', $idContrato)->first();
             $empleado = Empleado::where('idEmpleado', $empleado->idEmpleado)->first();
             $empleado->idCargo = $cargo;
             $empleado->save();
-    
+
             $antiguo = Contrato::where('idContrato', $idContrato)->first();
             $antiguo->idCondicionDeContrato = 2;
             $antiguo->idMotivoDeCese = $motivo;
             $antiguo->save();
-    
+
             $contrato = new Contrato;
             $contrato->idCondicionDeContrato = 1;
             $contrato->idEmpleado = $empleado->idEmpleado;
@@ -514,19 +579,19 @@ class PersonalController extends Controller
             $contrato->FechaDeFinDeContrato = $fecha_fin;
             $contrato->save();
             $idNuevoContrato = $contrato->idContrato;
-    
+
             $datos = new Datoscontable;
             $datos->SueldoBase = $sueldo;
             $datos->NHijos = $num_hijos;
             $datos->idContrato = $idNuevoContrato;
             $datos->save();
-    
+
             $tareo = Tareo::where('idContrato', $idContrato)->get();
             foreach ($tareo as $registro) {
                 $registro->idContrato = $idNuevoContrato;
                 $registro->save();
             }
-            
+
             return response()->json(['success' => 'Contrato renovado con éxito', 'idNuevoContrato' => $idNuevoContrato]);
         } catch (\Exception $e) {
             $error = $e->getMessage();
@@ -567,11 +632,11 @@ class PersonalController extends Controller
     {
         try {
             $idContrato = $request->input('id');
-    
+
             $contrato = Contrato::find($idContrato);
             $contrato->contratopdf = NULL;
             $contrato->save();
-    
+
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
@@ -589,7 +654,7 @@ class PersonalController extends Controller
                 $contrato->FechaDeInicioDeContrato  = $fecha_inicio;
                 $contrato->FechaDeFinDeContrato  = $fecha_fin;
                 $contrato->save();
-            
+
 
             return response()->json(['mensaje' => 'Registro guardado con éxito']);
         } catch (\Exception $e) {
@@ -598,4 +663,3 @@ class PersonalController extends Controller
         }
     }
 }
-

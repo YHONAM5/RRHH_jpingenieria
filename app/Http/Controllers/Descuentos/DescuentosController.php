@@ -12,6 +12,7 @@ use App\Models\Persona;
 use App\Models\Prestamo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DescuentosController extends Controller
 {
@@ -33,45 +34,45 @@ class DescuentosController extends Controller
     {
         $estaciones = Estaciondetrabajo::all();
         $personas = Persona::join('empleado','empleado.idPersona','=','persona.idPersona')
-        ->join('cargo','cargo.idCargo','=','empleado.idCargo')
-        ->join('contrato','contrato.idEmpleado','=','empleado.idEmpleado')
-        ->join('estaciondetrabajo','estaciondetrabajo.idEstacionDeTrabajo','=','contrato.idEstacionTrabajo')
-        ->where('contrato.idCondicionDeContrato',1)
-        ->get();
-
+            ->join('cargo','cargo.idCargo','=','empleado.idCargo')
+            ->join('contrato','contrato.idEmpleado','=','empleado.idEmpleado')
+            ->join('estaciondetrabajo','estaciondetrabajo.idEstacionDeTrabajo','=','contrato.idEstacionTrabajo')
+            ->where('contrato.idCondicionDeContrato',1)
+            ->get();
+    
         $periodos = Periodo::all();
-
+    
         $idPeriodo = $request->input('periodo');
-
+    
         $periodo = Periodo::find($idPeriodo);
         $PrimerFecha = $periodo->DiaDeInicioDelPeriodo;
         $SegundaFecha = $periodo->DiaDeFinDelPeriodo;
-
+    
         $adelantos = Adelanto::join('datoscontables', 'adelanto.idDatosContables', '=', 'datoscontables.idDatosContables')
-                                ->join('contrato', 'datoscontables.idContrato', '=', 'contrato.idContrato')
-                                ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
-                                ->join('persona', 'empleado.idPersona', '=', 'persona.idPersona')
-                                ->whereBetween('adelanto.FechaDeDeposito', [$PrimerFecha, $SegundaFecha])
-                                ->get();
-
+            ->join('contrato', 'datoscontables.idContrato', '=', 'contrato.idContrato')
+            ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+            ->join('persona', 'empleado.idPersona', '=', 'persona.idPersona')
+            ->whereBetween('adelanto.FechaDeDeposito', [$PrimerFecha, $SegundaFecha])
+            ->get();
+    
         $prestamos = Prestamo::join('datoscontables', 'prestamo.idDatosContables', '=', 'datoscontables.idDatosContables')
-                                ->join('contrato', 'datoscontables.idContrato', '=', 'contrato.idContrato')
-                                ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
-                                ->join('persona', 'empleado.idPersona', '=', 'persona.idPersona')
-                                ->whereBetween('prestamo.fecha', [$PrimerFecha, $SegundaFecha])
-                                ->get();
-
+            ->join('contrato', 'datoscontables.idContrato', '=', 'contrato.idContrato')
+            ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+            ->join('persona', 'empleado.idPersona', '=', 'persona.idPersona')
+            ->whereBetween('prestamo.fecha', [$PrimerFecha, $SegundaFecha])
+            ->get();
+    
         $otros = Otrosdescuento::join('datoscontables', 'otrosdescuentos.idDatosContables', '=', 'datoscontables.idDatosContables')
-                                ->join('contrato', 'datoscontables.idContrato', '=', 'contrato.idContrato')
-                                ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
-                                ->join('persona', 'empleado.idPersona', '=', 'persona.idPersona')
-                                ->whereBetween('otrosdescuentos.fecha', [$PrimerFecha, $SegundaFecha])
-                                ->get();
-
+            ->join('contrato', 'datoscontables.idContrato', '=', 'contrato.idContrato')
+            ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+            ->join('persona', 'empleado.idPersona', '=', 'persona.idPersona')
+            ->whereBetween('otrosdescuentos.fecha', [$PrimerFecha, $SegundaFecha])
+            ->get();
+    
         if ($adelantos->count() > 0 || $prestamos->count() > 0 || $otros->count() > 0) {
-            return view('rrhh.descuentos.index',compact('personas','estaciones','periodos','adelantos','prestamos','otros'));
-        }else{
-            return view('rrhh.descuentos.index',compact('personas','estaciones','periodos'));
+            return view('rrhh.descuentos.index', compact('personas', 'estaciones', 'periodos', 'adelantos', 'prestamos', 'otros', 'idPeriodo'));
+        } else {
+            return view('rrhh.descuentos.index', compact('personas', 'estaciones', 'periodos', 'idPeriodo'));
         }   
     }
 
@@ -163,4 +164,82 @@ class DescuentosController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+    public function detallesDescuento($idPersona, $idPeriodo)
+{
+    // Obtener la información del empleado
+    $persona = Persona::find($idPersona);
+
+    // Obtener el periodo
+    $periodo = Periodo::find($idPeriodo);
+    $PrimerFecha = $periodo->DiaDeInicioDelPeriodo;
+    $SegundaFecha = $periodo->DiaDeFinDelPeriodo;
+
+    // Obtener los adelantos del empleado en el periodo
+    $adelantos = Adelanto::join('datoscontables', 'adelanto.idDatosContables', '=', 'datoscontables.idDatosContables')
+        ->join('contrato', 'datoscontables.idContrato', '=', 'contrato.idContrato')
+        ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+        ->where('empleado.idPersona', $idPersona)
+        ->whereBetween('adelanto.FechaDeDeposito', [$PrimerFecha, $SegundaFecha])
+        ->select('adelanto.*')
+        ->get();
+
+    // Obtener los préstamos del empleado en el periodo
+    $prestamos = Prestamo::join('datoscontables', 'prestamo.idDatosContables', '=', 'datoscontables.idDatosContables')
+        ->join('contrato', 'datoscontables.idContrato', '=', 'contrato.idContrato')
+        ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+        ->where('empleado.idPersona', $idPersona)
+        ->whereBetween('prestamo.fecha', [$PrimerFecha, $SegundaFecha])
+        ->select('prestamo.*')
+        ->get();
+
+    // Obtener otros descuentos del empleado en el periodo
+    $otros = Otrosdescuento::join('datoscontables', 'otrosdescuentos.idDatosContables', '=', 'datoscontables.idDatosContables')
+        ->join('contrato', 'datoscontables.idContrato', '=', 'contrato.idContrato')
+        ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+        ->where('empleado.idPersona', $idPersona)
+        ->whereBetween('otrosdescuentos.fecha', [$PrimerFecha, $SegundaFecha])
+        ->select('otrosdescuentos.*')
+        ->get();
+
+    return view('rrhh.descuentos.detalles', compact('persona', 'adelantos', 'prestamos', 'otros', 'periodo'));
+}
+public function descargarPdf($idPersona, $idPeriodo)
+{
+    $persona = Persona::find($idPersona);
+    $periodo = Periodo::find($idPeriodo);
+
+    $PrimerFecha = $periodo->DiaDeInicioDelPeriodo;
+    $SegundaFecha = $periodo->DiaDeFinDelPeriodo;
+
+    $adelantos = Adelanto::join('datoscontables', 'adelanto.idDatosContables', '=', 'datoscontables.idDatosContables')
+        ->join('contrato', 'datoscontables.idContrato', '=', 'contrato.idContrato')
+        ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+        ->join('persona', 'empleado.idPersona', '=', 'persona.idPersona')
+        ->where('persona.idPersona', $idPersona)
+        ->whereBetween('adelanto.FechaDeDeposito', [$PrimerFecha, $SegundaFecha])
+        ->select('adelanto.*', 'persona.Nombres')
+        ->get();
+
+    $prestamos = Prestamo::join('datoscontables', 'prestamo.idDatosContables', '=', 'datoscontables.idDatosContables')
+        ->join('contrato', 'datoscontables.idContrato', '=', 'contrato.idContrato')
+        ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+        ->join('persona', 'empleado.idPersona', '=', 'persona.idPersona')
+        ->where('persona.idPersona', $idPersona)
+        ->whereBetween('prestamo.fecha', [$PrimerFecha, $SegundaFecha])
+        ->select('prestamo.*', 'persona.Nombres')
+        ->get();
+
+    $otros = Otrosdescuento::join('datoscontables', 'otrosdescuentos.idDatosContables', '=', 'datoscontables.idDatosContables')
+        ->join('contrato', 'datoscontables.idContrato', '=', 'contrato.idContrato')
+        ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+        ->join('persona', 'empleado.idPersona', '=', 'persona.idPersona')
+        ->where('persona.idPersona', $idPersona)
+        ->whereBetween('otrosdescuentos.fecha', [$PrimerFecha, $SegundaFecha])
+        ->select('otrosdescuentos.*', 'persona.Nombres')
+        ->get();
+
+    $pdf = Pdf::loadView('rrhh.descuentos.pdf', compact('persona', 'periodo', 'adelantos', 'prestamos', 'otros'));
+    return $pdf->download('detalles_descuentos.pdf');
+}
+
 }

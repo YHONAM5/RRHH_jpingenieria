@@ -6,7 +6,13 @@
 @section('plugins.Select2', true)
 
 @section('content_header')
-    <h2><b>DESCUENTOS</b></h2>
+    <div class="d-flex justify-content-between align-items-center">
+        <h2><b>DESCUENTOS</b></h2>
+        <!-- Bot贸n para ir a la ruta de bonos -->
+        <a href="{{ url('bonos') }}" class="btn btn-primary">
+            <i class="fas fa-money-check-alt"></i> Bono / Reintegro
+        </a>
+    </div>
 @stop
 
 @section('content')

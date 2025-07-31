@@ -10,9 +10,9 @@
             <h2><b>LISTADO DE PERSONAL ACTIVO</b></h2>
         </div>
         <div class="col-md-6 text-right">
-            <button class="btn btn-primary">Personal Inactivo <i class="fas fa-eye"></i></button>
-        </div>
-    </div>
+	    <a href="{{ url('personal/personalInactivo') }}" class="btn btn-primary">Personal Inactivo <i class="fas fa-eye"></i></a>
+	</div>
+	</div>
 @stop
 
 @section('content')

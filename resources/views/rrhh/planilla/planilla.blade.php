@@ -22,7 +22,7 @@
     </tr>
       <tr>
         <th style="background-color: #A4CC9A;" class="th1 p-1 text-center align-middle" colspan="4">
-          INFORMACIÓN BÁSICA DE EMPLEADO
+          INFFORMACIÓN BÁSICA DE EMPLEADO
         </th>
         <th style="background-color: #C6C7BF;" class="th1 p-1 text-center align-middle" colspan="{{ $num_estaciones+14 }}">
           TAREO
@@ -180,6 +180,7 @@
     </thead>
     <tbody>
       @php
+            $personas = [];
             $totalSueldoBruto = 0;
             $totalAsignacionFamiliar = 0;
             $totalHorasExtras = 0;
@@ -190,13 +191,29 @@
             $totalDescuentos = 0;
             $totalNeto = 0;
             $totalEssalud = 0;
+            $lastIdContrato= null;
       @endphp
-        @foreach ($tareos as $item)
+      @foreach ($tareos as $item)
+           @php
+             	// Verificar si la persona ya existe en el diccionario personas
+        	if (isset($personas[$item->DNI])) {
+            	// La persona ya existe, actualizar lastIdContrato
+            		$lastIdContrato = $personas[$item->DNI];
+        	} else {
+            	 // La persona no existe, agregar a personas y actualizar lastIdContrato
+            		$personas[$item->DNI] = $item->idContrato;
+            		$lastIdContrato = $item->idContrato;
+        	}
+        	
+        	// Actualizar idContrato en el array $tareos
+        	$item->idContrato = $lastIdContrato;
+           @endphp
+        
         <tr class="trTable">
           <td>
-            {{-- DNI --}}
-            {{$item->DNI}}
-          </td>
+	        {{-- DNI --}}
+	        {{$item->DNI}}
+	  </td>
           <td>
             {{-- Estacion --}}
             {{strtoupper($item->NombreEstacionDeTrabajo)}}
@@ -214,6 +231,10 @@
                 @if ($datos->idDatosContables == $item->idDatoContable)
                     @php
                         $sueldo_base = $datos->SueldoBase;
+                        // Si el DNI es igual a "47691558", establecer el sueldo base a 2300
+		            if ($item->DNI == '47691558') {
+		                $sueldo_base = 2300;
+		            }
                     @endphp
                 @endif
             @endforeach
@@ -236,7 +257,7 @@
             </td>
           @endforeach  
           @php
-          $cantidad_dias_pendientes = $total_dias_tareados > $num_dias ? $total_dias_tareados - $num_dias : 0; // Calcular dias_pendientes
+          $cantidad_dias_pendientes = $total_dias_tareados > $num_dias ? $total_dias_tareados - $num_dias : 0; // Calcular dias_pendientes 
           @endphp
           <td style="background-color: #CEE3F5; font-weight:bolder;">
               {{-- Total días tareados --}}
@@ -474,11 +495,15 @@
                 echo 'S/' . $total_descuentos;
                 $totalDescuentos += $total_descuentos;
             @endphp
-        </td>
-          <td class="text-center">
-            {{-- Reintegros--}}
-            {{ '-' }}
-          </td>
+	        </td>
+	<td class="text-center">
+	  {{-- Reintegros --}}
+	  @php
+	      $reintegro_value = $reintegros[$item->idContrato] ?? 0;
+	      echo 'S/' . number_format($reintegro_value, 2);
+	  @endphp
+	</td>
+		
           <td style="background-color: #CEE3F5; font-weight:bolder;" class="text-center">
             {{-- TOTAL NETO --}}
             @php

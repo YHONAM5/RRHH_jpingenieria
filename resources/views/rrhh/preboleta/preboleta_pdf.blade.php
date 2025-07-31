@@ -68,15 +68,27 @@
             </tbody>
           </Table>
         </div>
+        <?php
+        // Convertir la colección en array
+        $estaciones_array = $estaciones->toArray();
+
+        // Filtrar las estaciones con días trabajados mayor a 0
+        $estaciones_filtradas = array_filter($estaciones_array, function($estacion) use ($dia_inicio, $dia_fin, $idContrato) {
+            $tareo_estacion = new \App\Http\Controllers\Planilla\PlanillaController();
+            $tareo_estacion_value = $tareo_estacion->TareoPorEstacion($estacion['idEstacionDeTrabajo'], $estacion['idRegimenLaboral'], $dia_inicio, $dia_fin, $idContrato);
+            return floatval($tareo_estacion_value) > 0;
+        });
+        $num_estaciones_filtradas = count($estaciones_filtradas);
+        ?>
         <div class="table">
           <table>
             <tr>
-              <th class="thHeader" colspan="{{ $num_estaciones+2 }}">
+              <th class="thHeader" colspan="{{ $num_estaciones_filtradas+2 }}">
                 DATOS DEL TRABAJADOR VINCULADOS A LA RELACIÓN LABORAL
               </th>
             </tr>
             <tr>
-              <th class="thHeader" colspan="{{ $num_estaciones }}">
+              <th class="thHeader" colspan="{{ $num_estaciones_filtradas }}">
                 Días trabajados
               </th>
               <!--<th colspan="1"></th>-->
@@ -85,8 +97,8 @@
               </th>
             </tr>
             <tr>
-                @foreach ($estaciones as $item)
-                  <th class="th3 p-1 text-center align-middle thHeader">{{ $item->NombreEstacionDeTrabajo }}</th> 
+                @foreach ($estaciones_filtradas as $item)
+                  <th class="th3 p-1 text-center align-middle thHeader">{{ $item['NombreEstacionDeTrabajo'] }}</th> 
                 @endforeach
             </tr>
             <tbody>
@@ -95,11 +107,11 @@
                 $total_dias_tareados = 0; // Mover la declaración de la variable fuera del bucle
                 @endphp
                 
-                  @foreach ($estaciones as $estacion)
+                  @foreach ($estaciones_filtradas as $estacion)
                     <td class="tdBody"> 
                       @php
                       $tareo_estacion = new \App\Http\Controllers\Planilla\PlanillaController();
-                      $tareo_estacion_value = $tareo_estacion->TareoPorEstacion($estacion->idEstacionDeTrabajo,$estacion->idRegimenLaboral , $dia_inicio, $dia_fin, $idContrato);
+                      $tareo_estacion_value = $tareo_estacion->TareoPorEstacion($estacion['idEstacionDeTrabajo'],$estacion['idRegimenLaboral'] , $dia_inicio, $dia_fin, $idContrato);
                               echo $tareo_estacion_value;
                   
                       $total_dias_tareados += floatval($tareo_estacion_value); // Convertir a float y sumar directamente
@@ -339,7 +351,7 @@
                     </td>
                   </tr>
                   <tr>
-                    <td style="font-weight: bolder;" class="tdDetalle">Otros</td>
+                    <td style="font-weight: bolder;" class="tdDetalle">Descuentos</td>
 
                     <td align="right" class="tdDetalle">
                      {{-- Otros --}}
@@ -367,15 +379,29 @@
               <div class="box1">Reintegros +</div>
               <div class="box2">
                 {{-- Reintegros --}}
+                @php
+                    echo 'S/'.$reintegro;
+                @endphp
               </div>
             </div>
+            
+            <div class="tableFooter">
+                <div class="box1">Bono +</div>
+                <div class="box2">
+                    {{-- Bono --}}
+                    @php
+                        echo 'S/' . ($bonoDeclarado ?? '0.00');
+                    @endphp
+                </div>
+            </div>
+            
             <div class="tableFooter">
               <div class="box1">Neto a pagar</div>
               <div class="box2">
                {{-- Neto a pagar --}}
                @php
-                    $total_neto = $remuneracion_asegurable - $total_descuentos;
-                    echo 'S/'.$total_neto;
+                   $total_neto = $remuneracion_asegurable - $total_descuentos + $reintegro + $bonoDeclarado;
+                   echo 'S/'.$total_neto;
                @endphp
               </div>
             </div>

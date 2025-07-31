@@ -349,7 +349,9 @@ class TareoController extends Controller
             return 'HN';
         } elseif ($idCondicion == 14) {
             return 'FE';
-        }
+        }else if ($idCondicion == 15) {
+	    return 'DP';
+	}
     }
     public function totalCondicionesDeTareo($idContrato, $idCondicionDeTareo)
     {

@@ -51,7 +51,7 @@
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $examen->NombreTipoExamenMedico }}</td>
                             <td>{{ date('d/m/Y',strtotime($examen->FechaDeInicioVigencia)) }}</td>
-                            <td>{{ date('d/m/Y',strtotime($cursos->FechaDeFinVidencia)) }}</td>
+                            <td>{{ date('d/m/Y',strtotime($examen->FechaDeFinVidencia)) }}</td>
                             <td><a href="{{ asset('storage').'/'.$examen->documento }}" target="_blank" class="btn btn-primary"><i>Ver</i></a></td>
                         </tr>
                         @endforeach
