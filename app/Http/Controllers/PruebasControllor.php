@@ -7,7 +7,6 @@ use App\Models\Datoscontable;
 use App\Models\Horasextra;
 use App\Models\Tareo;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 
 class RegistroTareoController extends Controller
@@ -16,9 +15,7 @@ class RegistroTareoController extends Controller
     {
         try {
 
-            // dd($request->all());
-
-            $fecha_descanso = $request->input('dias_descanso', []);
+            $dias_descansos = $request->input('dias_descanso');
             $fecha_registro = $request->input('fecha');
             // $dias_trabajados = $request->input('dias_trabajados');
             // $dias_descansos = $request->input('dias_descansos');
@@ -28,27 +25,7 @@ class RegistroTareoController extends Controller
             $idEstacion = $request->input('idEstacion');
             $horario = $request->input('horario');
 
-
-
-
-            //Capturar el rongo de fechas
-            $fecha_inicio_descanso = $request->input('fecha_inicio_descanso');
-            $fecha_fin_descanso = $request->input('fecha_fin_descanso');
-
-            $rango_fechas = [];
-            if ($fecha_inicio_descanso && $fecha_fin_descanso) {
-                $periodo = CarbonPeriod::create($fecha_inicio_descanso, $fecha_fin_descanso);
-                foreach ($periodo as $fecha) {
-                    $rango_fechas[] = $fecha->toDateString();
-                }
-            }
-
-            //unimos todos los días de descanso
-            $dias_descansos = array_unique(array_merge($fecha_descanso, $rango_fechas));
-
-
             $fecha = Carbon::parse($fecha_registro);
-
 
             $dias_trabajados = 30; // Número de días trabajados a registrar
 
@@ -65,6 +42,9 @@ class RegistroTareoController extends Controller
                 if (!$esDescanso) {
                     foreach ($contratos as $idContrato) {
                         $iddatoscontables = Datoscontable::where('idContrato', $idContrato)->first();
+
+
+
                         $tareo = new Tareo;
                         $tareo->idContrato = $idContrato;
                         $tareo->Fecha = $fechaRegistro;
@@ -95,7 +75,53 @@ class RegistroTareoController extends Controller
                             $tareo->HoraDeInicioDeAlmuerzo = '13:00';
                             $tareo->HoraDeFinDeAlmuerzo = '13:45';
                         }
-
+                        // if ($idEstacion == 1 || $idEstacion == 3) {
+                        //     if ($dayOfWeek == 6) {
+                        //         $tareo->HoraDeInicioDeAlmuerzo = '00:00';
+                        //         $tareo->HoraDeFinDeAlmuerzo = '00:00';
+                        //         $tareo->HoraDeSalida = '13:30';
+                        //     } elseif ($dayOfWeek == 7) {
+                        //         $tareo->HoraDeInicioDeAlmuerzo = '00:00';
+                        //         $tareo->HoraDeFinDeAlmuerzo = '00:00';
+                        //         $tareo->HoraDeSalida = '16:00';
+                        //     } else {
+                        //         $tareo->HoraDeInicioDeAlmuerzo = '13:00';
+                        //         $tareo->HoraDeFinDeAlmuerzo = '13:45';
+                        //         $tareo->HoraDeSalida = $hora_fin;
+                        //     }
+                        // } elseif ($idEstacion == 2 || $idEstacion == 3) {
+                        //     if ($dayOfWeek == 6) {
+                        //         $tareo->HoraDeInicioDeAlmuerzo = '00:00';
+                        //         $tareo->HoraDeFinDeAlmuerzo = '00:00';
+                        //         $tareo->HoraDeSalida = '13:00';
+                        //     } elseif ($dayOfWeek == 7) {
+                        //         $tareo->HoraDeInicioDeAlmuerzo = '00:00';
+                        //         $tareo->HoraDeFinDeAlmuerzo = '00:00';
+                        //         $tareo->HoraDeSalida = '15:30';
+                        //     } else {
+                        //         $tareo->HoraDeInicioDeAlmuerzo = '13:00';
+                        //         $tareo->HoraDeFinDeAlmuerzo = '13:45';
+                        //         $tareo->HoraDeSalida = $hora_fin;
+                        //     }
+                        // } elseif ($idEstacion == 9) {
+                        //     if ($dayOfWeek == 6) {
+                        //         $tareo->HoraDeInicioDeAlmuerzo = '00:00';
+                        //         $tareo->HoraDeFinDeAlmuerzo = '00:00';
+                        //         $tareo->HoraDeSalida = '13:30';
+                        //     } elseif ($dayOfWeek == 7) {
+                        //         $tareo->HoraDeInicioDeAlmuerzo = '00:00';
+                        //         $tareo->HoraDeFinDeAlmuerzo = '00:00';
+                        //         $tareo->HoraDeSalida = '16:00';
+                        //     } else {
+                        //         $tareo->HoraDeInicioDeAlmuerzo = '13:00';
+                        //         $tareo->HoraDeFinDeAlmuerzo = '14:00';
+                        //         $tareo->HoraDeSalida = $hora_fin;
+                        //     }
+                        // } else {
+                        //     $tareo->HoraDeInicioDeAlmuerzo = '13:00';
+                        //     $tareo->HoraDeFinDeAlmuerzo = '14:00';
+                        //     $tareo->HoraDeSalida = $hora_fin;
+                        // }
 
                         $tareo->idEstacionDeTrabajo = $idEstacion;
                         $tareo->save();
