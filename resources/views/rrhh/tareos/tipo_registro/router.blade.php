@@ -1,15 +1,3 @@
-    {{-- <!-- jQuery (DEBE ir antes que todo lo demás) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- Moment.js (necesario para daterangepicker) -->
-<script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
-
-    <!-- Date Range Picker CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
-
-    <!-- Date Range Picker JS -->
-<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script> --}}
-
 <div class="card">
     <div class="card-header">
         <b>Registro por router</b>
@@ -157,20 +145,32 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <label for="inputCampo3">Descanso seguido:</label>
+                            <label for="inputCampo3">Descanso seguido fecha:<span class="text-danger">*</span> Inicio-Fin</label>
                             <div class="col">
                                 <div class="form-group">
                                     <div class="form-group">
-                                        <label for="fecha_inicio">Fecha de inicio:</label>
+
                                         <span class="span-cambio input-group-text bg-primary"><i class="fas fa-calendar-alt"></i></span>
-                                        <input type="date" id="fecha_inicio" name="fecha_inicio_descanso" class="form-control">
+                                        <input type="date" name="fechas_inicio_rango[]" class="form-control">
                                     </div>
                                     <div class="form-group">
-                                        <label for="fecha_fin">Fecha de fin:</label>
+
                                         <span class="span-cambio input-group-text bg-primary"><i class="fas fa-calendar-alt"></i></span>
-                                        <input type="date" id="fecha_fin" name="fecha_fin_descanso" class="form-control">
+                                        <input type="date" name="fechas_fin_rango[]" class="form-control">
+                                    </div>
+                                    <div id="contenedor-fechas-rango">
+                                        <!-- Inputs de rango de fechas se agregara dinamicamente-->
                                     </div>
                                     <small class="form-text text-muted">Estabesca el rango de dias descansados.</small>
+
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-sm btn-secondary" id="agregar_fecha_rango">
+                                            <i class="fas fa-plus"></i> Agregar rango
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-warning" id="limpiar_fechas_rango">
+                                            <i class="fas fa-trash"></i> Limpiar todas
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             {{-- <div class="col">
@@ -244,6 +244,10 @@
         const btnAgregar = document.getElementById("agregar_fecha");
         const btnLimpiar = document.getElementById("limpiar_fechas");
 
+        const contenedorRango = document.getElementById("contenedor-fechas-rango");
+        const btnAgregarRango = document.getElementById("agregar_fecha_rango");
+        const btnLimpiarRango = document.getElementById("limpiar_fechas_rango");
+
         // Función para agregar un nuevo campo de fecha
         function agregarCampoFecha() {
             const grupo = document.createElement("div");
@@ -259,6 +263,21 @@
             `;
             contenedor.appendChild(grupo);
         }
+        function agregarCampoFechaRango() {
+            const grupoRango = document.createElement("div");
+            grupoRango.className = "input-group-rango mb-2";
+            grupoRango.innerHTML = `
+                <div class="form-group">
+                    <span class="span-cambio input-group-text bg-primary"><i class="fas fa-calendar-alt"></i></span>
+                    <input type="date" name="fechas_inicio_rango[]" class="form-control">
+                </div>
+                <div class="form-group">
+                    <span class="span-cambio input-group-text bg-primary"><i class="fas fa-calendar-alt"></i></span>
+                    <input type="date" name="fechas_fin_rango[]" class="form-control">
+                </div>
+            `;
+            contenedorRango.appendChild(grupoRango);
+        }
 
         // Delegación de eventos para botones de eliminar
         contenedor.addEventListener("click", function (e) {
@@ -266,43 +285,21 @@
                 e.target.closest('.input-group').remove();
             }
         });
+        contenedorRango.addEventListener("click", function (e) {
+            if (e.target.closest('.eliminar-fecha-rango')) {
+                e.target.closest('.input-group-rango').remove();
+            }
+        });
 
         btnAgregar.addEventListener("click", agregarCampoFecha);
+        btnAgregarRango.addEventListener("click", agregarCampoFechaRango);
 
         btnLimpiar.addEventListener("click", function () {
             contenedor.innerHTML = ''; // Limpia todos los campos
         });
+        btnLimpiarRango.addEventListener("click", function () {
+            contenedorRango.innerHTML = ''; // Limpia todos los campos
+        });
     });
 </script>
-{{-- <script>
-    $(document).ready(function () {
-        $('#rango_fechas').daterangepicker({
-            opens: 'center',
-            autoUpdateInput: false,
-            locale: {
-                format: 'YYYY-MM-DD',
-                separator: ' - ',
-                applyLabel: 'Aplicar',
-                cancelLabel: 'Cancelar',
-                fromLabel: 'Desde',
-                toLabel: 'Hasta',
-                customRangeLabel: 'Personalizado',
-                weekLabel: 'S',
-                daysOfWeek: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'],
-                monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
-                            'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-                firstDay: 1
-            }
-        });
-
-        // Asigna el texto al input cuando el usuario aplica el rango
-        $('#rango_fechas').on('apply.daterangepicker', function(ev, picker) {
-            $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
-        });
-
-        $('#rango_fechas').on('cancel.daterangepicker', function(ev, picker) {
-            $(this).val('');
-        });
-    });
-</script> --}}
 

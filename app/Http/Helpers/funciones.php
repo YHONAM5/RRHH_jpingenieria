@@ -1,10 +1,12 @@
 <?php
+
+use App\Models\Periodo;
 use App\Models\Tareo;
 use Carbon\Carbon;
-
+use Carbon\CarbonPeriod;
 
 function tiempoTrabajado($tiempo1, $tiempo2, $tiempo3, $tiempo4){
-    
+
     $sub1 = strtotime($tiempo2) - strtotime($tiempo1);
     $sub2 = strtotime($tiempo4) - strtotime($tiempo3);
 
@@ -14,9 +16,21 @@ function tiempoTrabajado($tiempo1, $tiempo2, $tiempo3, $tiempo4){
 
     return $total;
 }
+function tiempoTrabajadoTotal ($subtoral, $tiempo1, $tiempo2, $tiempo3, $tiempo4){
+    $subtoralInicio = strtotime($subtoral);
+    $sub1 = strtotime($tiempo2) - strtotime($tiempo1);
+    $sub2 = strtotime($tiempo4) - strtotime($tiempo3);
+
+    $subtotal = $sub1 - $sub2;
+
+    // $total = gmdate('H:i', $subtotal);
+    $total = $subtotal;
+
+    return $total;
+}
 
 function calcularDominical($fecha,$contrato){
-    
+
     $fecha1 = Carbon::parse($fecha);
     $fecha2 = Carbon::parse($fecha);
 
@@ -32,8 +46,12 @@ function calcularDominical($fecha,$contrato){
     }
 
     $sabado = $domingo->copy()->subDay();
-    $tareo = Tareo::whereBetween('Fecha',[$lunes, $sabado])
-    ->where('idContrato', $contrato)
+
+    $condicionesQueSuman = [1, 2, 4, 6, 8, 9, 10, 12, 13, 15];
+
+    $tareo = Tareo::where('idContrato', $contrato)
+    ->whereBetween('Fecha',[$lunes, $sabado])
+    ->whereIn('idCondicionDeTareo', $condicionesQueSuman)
     ->get();
 
     $totalHoras = 0;
@@ -50,7 +68,7 @@ function calcularDominical($fecha,$contrato){
 
     $totalHorasDecimal = $totalHoras;
     $evaluar = ($totalHorasDecimal/3600);
-    
+
     if($evaluar >= 48){
         $horaSalidaDomingo = '16:00:00';
     }else if($evaluar < 48){
@@ -71,7 +89,7 @@ function calcularMontoAdicional($dia_inicio, $idContrato, $idEstacion)
         $dia_semana = $fecha_inicio->format('N'); // Obtener el día de la semana (1: lunes, 7: domingo)
 
         // Verificar si los días no son lunes ni domingo
-        if ($dia_semana > 1 && $dia_semana < 7) { 
+        if ($dia_semana > 1 && $dia_semana < 7) {
             $monto_adicional = 0;
 
             // Obtener el lunes de la misma semana
@@ -129,7 +147,7 @@ function calcularMontoAdicional($dia_inicio, $idContrato, $idEstacion)
     {
         $fecha_fin = new DateTime($dia_fin);
         $dia_semana = $fecha_fin->format('N'); // Obtener el día de la semana (1: lunes, 7: domingo)
-    
+
         if ($dia_semana === '6' || $dia_semana === '7') {
             return 0; // Retornar 0 si es sábado o domingo
         } else {
@@ -137,20 +155,20 @@ function calcularMontoAdicional($dia_inicio, $idContrato, $idEstacion)
             $lunes_semana = clone $fecha_fin; // Crear una copia de la fecha de fin
             $lunes_semana->modify('last monday'); // Encontrar el último lunes
             $diferencia_dias = $fecha_fin->diff($lunes_semana)->days; // Calcular la diferencia de días
-    
+
             $monto_restante = 0; // Variable para almacenar el monto adicional
-            
+
             for ($i = 0; $i <= $diferencia_dias; $i++) {
                 $fecha_dia = clone $lunes_semana;
                 $fecha_dia->add(new DateInterval("P{$i}D"));
-    
+
                 // Verificar si existe tareo para el día actual
                 $existe_tareo = Tareo::where('Fecha', $fecha_dia->format('Y-m-d'))
                     ->whereIn('idCondicionDeTareo', [1, 2, 11, 12, 13, 4, 6, 7, 8, 9])
                     ->where('idContrato', $idContrato)
                     ->where('tareo.idEstacionDeTrabajo', $idEstacion)
                     ->exists();
-    
+
                 if ($existe_tareo) {
                     // Obtener el tareo para el día actual
                     $tareo = Tareo::where('Fecha', $fecha_dia->format('Y-m-d'))
@@ -158,35 +176,141 @@ function calcularMontoAdicional($dia_inicio, $idContrato, $idEstacion)
                         ->where('idContrato', $idContrato)
                         ->where('tareo.idEstacionDeTrabajo', $idEstacion)
                         ->first();
-    
+
                     $hora_ingreso = $tareo->HoraDeIngreso;
                     $hora_inicioalmuerzo = $tareo->HoraDeInicioDeAlmuerzo;
                     $hora_finalmuerzo = $tareo->HoraDeFinDeAlmuerzo;
                     $hora_salida = $tareo->HoraDeSalida;
-    
+
                     $tiempo_trabajado = strtotime($hora_salida) - strtotime($hora_ingreso);
                     $tiempo_almuerzo = strtotime($hora_finalmuerzo) - strtotime($hora_inicioalmuerzo);
                     $total_horas_trabajadas = ($tiempo_trabajado - $tiempo_almuerzo) / 3600;
-    
+
                     if ($total_horas_trabajadas > 8) {
                         $horas_extras = $total_horas_trabajadas - 8;
                         $minutos_extras = ($horas_extras - floor($horas_extras)) * 60;
-    
+
                         $monto_restante += round(convertirTiempoDecimal(floor($horas_extras), $minutos_extras), 1);
                     }
                 }
             }
-    
+
             // Realizar otras operaciones o llamadas a funciones aquí
             // ...
-    
+
             return $monto_restante; // Retornar el monto adicional calculado
         }
     }
-        
+
     function convertirTiempoDecimal($horas, $minutos) {
         $decimal = $horas + ($minutos / 60);
         return $decimal;
     }
 
+    // fjsooidf
+
+    // function calcularTotalHorasTrabajadas($idContrato, $idEstacion, $fecha_periodo)
+    // {
+    //     $totalHoras = 0;
+    //     $fecha = Carbon::parse($fecha_periodo);
+    //     $periodo = Periodo::whereMonth('DiaDeInicioDelPeriodo', $fecha)
+    //         ->whereYear('DiaDeInicioDelPeriodo', $fecha)
+    //         ->orderBy('DiaDeInicioDelPeriodo', 'asc')
+    //         ->first();
+
+    //     $diasTareados = Tareo::join('estaciondetrabajo', 'tareo.idEstacionDeTrabajo', '=', 'estaciondetrabajo.idEstacionDeTrabajo')
+    //         ->join('contrato', 'tareo.idContrato', '=', 'contrato.idContrato')
+    //         ->whereBetween('tareo.Fecha', [$periodo->DiaDeInicioDelPeriodo, $periodo->DiaDeFinDelPeriodo])
+    //         ->where('tareo.idEstacionDeTrabajo', $idEstacion)
+    //         ->where('tareo.idContrato', $idContrato)
+    //         ->get();
+    //     foreach ($diasTareados as $dia) {
+    //         $horaIngreso = $dia->HoraDeIngreso;
+    //         $horaSalida = $dia->HoraDeSalida;
+    //         $horaInicioAlmnuerzo = $dia->HoraDeInicioDeAlmuerzo;
+    //         $horaFinAlmuerzo = $dia->HoraDeFinDeAlmuerzo;
+
+    //         $sub1 = strtotime($horaSalida) - strtotime($horaIngreso);
+    //         $sub2 = strtotime($horaFinAlmuerzo) - strtotime($horaInicioAlmnuerzo);
+
+    //         $subtotal = $sub1 - $sub2;
+    //         $totalHoras += $subtotal;
+    //     }
+
+    //     return gmdate('H:i', $totalHoras);
+    // }
+
+    function calcularTotalHorasTrabajadas($idContrato, $idEstacion, $fecha_periodo)
+    {
+        $totalSegundos = 0;
+        $fecha = Carbon::parse($fecha_periodo);
+
+        $periodo = Periodo::whereMonth('DiaDeInicioDelPeriodo', $fecha->month)
+            ->whereYear('DiaDeInicioDelPeriodo', $fecha->year)
+            ->orderBy('DiaDeInicioDelPeriodo', 'asc')
+            ->first();
+
+        if (!$periodo) {
+            return '00:00';
+        }
+
+        $diasTareados = Tareo::join('estaciondetrabajo', 'tareo.idEstacionDeTrabajo', '=', 'estaciondetrabajo.idEstacionDeTrabajo')
+            ->join('contrato', 'tareo.idContrato', '=', 'contrato.idContrato')
+            ->whereBetween('tareo.Fecha', [$periodo->DiaDeInicioDelPeriodo, $periodo->DiaDeFinDelPeriodo])
+            ->where('tareo.idEstacionDeTrabajo', $idEstacion)
+            ->where('tareo.idContrato', $idContrato)
+            ->get();
+
+        foreach ($diasTareados as $dia) {
+            if (!$dia->HoraDeIngreso || !$dia->HoraDeSalida ||
+                !$dia->HoraDeInicioDeAlmuerzo || !$dia->HoraDeFinAlmuerzo) {
+                continue;
+            }
+
+            $horaIngreso = $dia->HoraDeIngreso;
+            $horaSalida = $dia->HoraDeSalida;
+            $horaInicioAlmuerzo = $dia->HoraDeInicioDeAlmuerzo;
+            $horaFinAlmuerzo = $dia->HoraDeFinDeAlmuerzo;
+
+            $fechaBase = $dia->Fecha;
+
+            try {
+                $ingresoCarbon = Carbon::parse($fechaBase . ' ' . $horaIngreso);
+                $salidaCarbon = Carbon::parse($fechaBase . ' ' . $horaSalida);
+                $inicioAlmuerzoCarbon = Carbon::parse($fechaBase . ' ' . $horaInicioAlmuerzo);
+                $finAlmuerzoCarbon = Carbon::parse($fechaBase . ' ' . $horaFinAlmuerzo);
+
+                $horasTotales = $salidaCarbon->diffInSeconds($ingresoCarbon);
+                $horasAlmuerzo = $finAlmuerzoCarbon->diffInSeconds($inicioAlmuerzoCarbon);
+
+                $horasEfectivas = $horasTotales - $horasAlmuerzo;
+                $totalSegundos += $horasEfectivas;
+            } catch (\Exception $e) {
+                // Log the error or handle it as appropriate, e.g., skip this entry
+                continue;
+            }
+        }
+
+        $horas = floor($totalSegundos / 3600);
+        $minutos = floor(($totalSegundos % 3600) / 60);
+
+        return sprintf('%02d:%02d', $horas, $minutos);
+    }
+    //Funcion para calcular dias tareados por persona
+    function totalDiasTareados ($tareos, $dia_inicio, $dia_fin){
+        $totalDias = 0;
+        $dia_inicio = Carbon::parse('2025-08-01');
+        $dia_fin = Carbon::parse('2025-08-08');
+
+        $periodos = CarbonPeriod::create($dia_inicio, $dia_fin);
+
+        foreach ($periodos as $fecha) {
+            echo $fecha->format('Y-m-d') . "\n";
+
+            // Aquí va tu lógica por día
+
+        }
+
+        return $totalDias;
+    }
 ?>

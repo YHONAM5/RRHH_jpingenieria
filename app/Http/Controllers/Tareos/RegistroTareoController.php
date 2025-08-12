@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Tareos;
 
 use App\Http\Controllers\Controller;
 use App\Models\Datoscontable;
+use App\Models\Estaciondetrabajo;
 use App\Models\Horasextra;
+use App\Models\RegimenLaboral;
 use App\Models\Tareo;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
+use PhpParser\Node\Stmt\Foreach_;
 
 class RegistroTareoController extends Controller
 {
@@ -32,25 +35,48 @@ class RegistroTareoController extends Controller
 
 
             //Capturar el rongo de fechas
-            $fecha_inicio_descanso = $request->input('fecha_inicio_descanso');
-            $fecha_fin_descanso = $request->input('fecha_fin_descanso');
+            // $fecha_inicio_descanso = $request->input('fecha_inicio_descanso', []);
+            // $fecha_fin_descanso = $request->input('fecha_fin_descanso', []);
 
-            $rango_fechas = [];
-            if ($fecha_inicio_descanso && $fecha_fin_descanso) {
-                $periodo = CarbonPeriod::create($fecha_inicio_descanso, $fecha_fin_descanso);
+            $fechas_inicio = $request->input('fechas_inicio_rango', []);
+            $fechas_fin = $request->input('fechas_fin_rango', []);
+
+            $fechas_rango_total = [];
+            foreach ($fechas_inicio as $index => $inicio) {
+                $fin = $fechas_fin[$index] ?? null;
+
+                if (!$inicio || !$fin) {
+                    continue; // Saltar si falta alguna fecha
+                }
+
+                $periodo = CarbonPeriod::create($inicio, $fin);
+
                 foreach ($periodo as $fecha) {
-                    $rango_fechas[] = $fecha->toDateString();
+                    $fechas_rango_total[] = $fecha->toDateString();
                 }
             }
 
+            // Opcional: eliminar duplicados y ordenar
+            // $fechas_rango_total = array_unique($fechas_rango_total);
+            // sort($fechas_rango_total);
+
+
+            // $rango_fechas = [];
+            // if ($fecha_inicio_descanso && $fecha_fin_descanso) {
+            //     $periodo = CarbonPeriod::create($fecha_inicio_descanso, $fecha_fin_descanso);
+            //     foreach ($periodo as $fecha) {
+            //         $rango_fechas[] = $fecha->toDateString();
+            //     }
+            // }
+
             //unimos todos los días de descanso
-            $dias_descansos = array_unique(array_merge($fecha_descanso, $rango_fechas));
+            $dias_descansos = array_unique(array_merge($fecha_descanso, $fechas_rango_total));
 
 
             $fecha = Carbon::parse($fecha_registro);
 
 
-            $dias_trabajados = 30; // Número de días trabajados a registrar
+            $dias_trabajados = $fecha->daysInMonth; // Número de días trabajados a registrar
 
             $currentFecha = $fecha; // Variable para hacer seguimiento de la fecha actual
 
@@ -64,6 +90,10 @@ class RegistroTareoController extends Controller
                 $esDescanso = in_array($fechaRegistro, $dias_descansos);
                 if (!$esDescanso) {
                     foreach ($contratos as $idContrato) {
+
+                        $idRegimen = Estaciondetrabajo::where('idEstacionDeTrabajo', $idEstacion)->value('idRegimenLaboral');
+
+
                         $iddatoscontables = Datoscontable::where('idContrato', $idContrato)->first();
                         $tareo = new Tareo;
                         $tareo->idContrato = $idContrato;
@@ -76,26 +106,32 @@ class RegistroTareoController extends Controller
                             $tareo->idCondicionDeTareo = 12;
                         }
 
-
-                        if($dayOfWeek == 6){
+                        if ($idRegimen == 1) {
+                            if ($dayOfWeek == 6) {
+                                $tareo->HoraDeIngreso = $hora_inicio;
+                                $tareo->HoraDeInicioDeAlmuerzo = '00:00';
+                                $tareo->HoraDeFinDeAlmuerzo = '00:00';
+                                $tareo->HoraDeSalida = '13:30';
+                            }
+                            // elseif($dayOfWeek == 7){
+                            //     $tareo->HoraDeIngreso = $hora_inicio;
+                            //     $tareo->HoraDeIngreso = '00:00';
+                            //     $tareo->HoraDeInicioDeAlmuerzo = '00:00';
+                            //     $tareo->HoraDeFinDeAlmuerzo = '00:00';
+                            //     $tareo->HoraDeSalida = '00:00';
+                            // }
+                            else {
+                                $tareo->HoraDeIngreso = $hora_inicio;
+                                $tareo->HoraDeInicioDeAlmuerzo = '13:00';
+                                $tareo->HoraDeFinDeAlmuerzo = '13:45';
+                                $tareo->HoraDeSalida = $hora_fin;
+                            }
+                        } else {
                             $tareo->HoraDeIngreso = $hora_inicio;
                             $tareo->HoraDeInicioDeAlmuerzo = '00:00';
                             $tareo->HoraDeFinDeAlmuerzo = '00:00';
-                            $tareo->HoraDeSalida = '13:30';
-                        }elseif($dayOfWeek == 7){
-                            $tareo->HoraDeIngreso = $hora_inicio;
-                            $tareo->HoraDeIngreso = '00:00';
-                            $tareo->HoraDeInicioDeAlmuerzo = '00:00';
-                            $tareo->HoraDeFinDeAlmuerzo = '00:00';
-                            $tareo->HoraDeSalida = '00:00';
-                        }else{
-                            $tareo->HoraDeIngreso = $hora_inicio;
                             $tareo->HoraDeSalida = $hora_fin;
-
-                            $tareo->HoraDeInicioDeAlmuerzo = '13:00';
-                            $tareo->HoraDeFinDeAlmuerzo = '13:45';
                         }
-
 
                         $tareo->idEstacionDeTrabajo = $idEstacion;
                         $tareo->save();
@@ -167,7 +203,7 @@ class RegistroTareoController extends Controller
                         $condicion_tareo = 1;
                     }
                     $tareo = new Tareo;
-                      $tareo->idContrato = $idContrato;
+                    $tareo->idContrato = $idContrato;
                     $tareo->idDatoContable = $iddatoscontables->idDatosContables;
                     $tareo->Fecha = $fecha;
                     $tareo->HoraDeIngreso = $hora_ingreso;
@@ -193,8 +229,6 @@ class RegistroTareoController extends Controller
                 $tareo->save();
                 return redirect()->route('tareos')->with('success', 'Registro de tareo individual exitoso.');
             }
-
-
         } catch (\Exception $e) {
             return redirect()->route('tareos')->with('error', 'Error al registrar.');
         }
@@ -239,5 +273,4 @@ class RegistroTareoController extends Controller
             return redirect()->route('horasextras')->with('error', 'Error al registrar: ' . $e->getMessage());
         }
     }
-
 }

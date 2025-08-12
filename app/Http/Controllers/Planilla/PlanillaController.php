@@ -17,6 +17,8 @@ use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+use function PHPUnit\Framework\returnSelf;
+
 class PlanillaController extends Controller
 {
     public function index()
@@ -27,54 +29,55 @@ class PlanillaController extends Controller
     }
 
     public function BuscarPlanilla(Request $request)
-{
-    $idPeriodo = $request->input('periodo');
-    $periodo = Periodo::find($idPeriodo);
-    $num_dias = $periodo->CantidadDeDias;
-    $dia_inicio = $periodo->DiaDeInicioDelPeriodo;
-    $dia_fin = $periodo->DiaDeFinDelPeriodo;
+    {
+        $idPeriodo = $request->input('periodo');
+        $periodo = Periodo::find($idPeriodo);
+        $num_dias = $periodo->CantidadDeDias;
+        // $num_dias = 30;
+        $dia_inicio = $periodo->DiaDeInicioDelPeriodo;
+        $dia_fin = $periodo->DiaDeFinDelPeriodo;
 
-    $tareos = Tareo::join('contrato', 'tareo.idContrato', '=', 'contrato.idContrato')
-        ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
-        ->join('persona', 'empleado.idPersona', '=', 'persona.idPersona')
-        ->join('datoscontables', 'contrato.idContrato', '=', 'datoscontables.idContrato')
-        ->join('estaciondetrabajo', 'contrato.idEstacionTrabajo', '=', 'estaciondetrabajo.idEstacionDeTrabajo')
-        ->join('fondodepension', 'empleado.idFondoDePension', '=', 'fondodepension.idFondoDePension')
-        ->whereIn('tareo.idDatoContable', function($query) use ($dia_inicio, $dia_fin) {
-            $query->select(DB::raw('MAX(idDatoContable)'))
-                  ->from('tareo')
-                  ->whereBetween('Fecha', [$dia_inicio, $dia_fin])
-                  ->groupBy('idContrato');
-        })
-        ->groupBy('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'fondodepension.NombreEntidad', 'datoscontables.SueldoBase', 'persona.Email')
-        ->select('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'persona.Email', 'fondodepension.NombreEntidad', DB::raw('MAX(datoscontables.SueldoBase) AS SueldoBase'))
-        ->get();
+        $tareos = Tareo::join('contrato', 'tareo.idContrato', '=', 'contrato.idContrato')
+            ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+            ->join('persona', 'empleado.idPersona', '=', 'persona.idPersona')
+            ->join('datoscontables', 'contrato.idContrato', '=', 'datoscontables.idContrato')
+            ->join('estaciondetrabajo', 'contrato.idEstacionTrabajo', '=', 'estaciondetrabajo.idEstacionDeTrabajo')
+            ->join('fondodepension', 'empleado.idFondoDePension', '=', 'fondodepension.idFondoDePension')
+            ->whereIn('tareo.idDatoContable', function($query) use ($dia_inicio, $dia_fin) {
+                $query->select(DB::raw('MAX(idDatoContable)'))
+                    ->from('tareo')
+                    ->whereBetween('Fecha', [$dia_inicio, $dia_fin])
+                    ->groupBy('idContrato');
+            })
+            ->groupBy('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'fondodepension.NombreEntidad', 'datoscontables.SueldoBase', 'persona.Email')
+            ->select('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'persona.Email', 'fondodepension.NombreEntidad', DB::raw('MAX(datoscontables.SueldoBase) AS SueldoBase'))
+            ->get();
 
-    $datos_contables = Datoscontable::all();
+        $datos_contables = Datoscontable::all();
 
-    // Obtener el reintegro para cada contrato
-    $reintegros = [];
-    foreach ($tareos as $tareo) {
-        $reintegro = Bono::where('idContrato', $tareo->idContrato)
-                         ->where('idPeriodo', $idPeriodo)
-                         ->sum('Reintegro');
-        $reintegros[$tareo->idContrato] = $reintegro;
+        // Obtener el reintegro para cada contrato
+        $reintegros = [];
+        foreach ($tareos as $tareo) {
+            $reintegro = Bono::where('idContrato', $tareo->idContrato)
+                            ->where('idPeriodo', $idPeriodo)
+                            ->sum('Reintegro');
+            $reintegros[$tareo->idContrato] = $reintegro;
+        }
+
+        // Listado de las estaciones en la que se tareo entre las fechas del periodo
+        $estaciones = Estaciondetrabajo::join('tareo', 'estaciondetrabajo.idEstacionDeTrabajo', '=', 'tareo.idEstacionDeTrabajo')
+            ->whereBetween('tareo.Fecha', [$dia_inicio, $dia_fin])
+            ->groupBy('estaciondetrabajo.idEstacionDeTrabajo', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'estaciondetrabajo.estado', 'estaciondetrabajo.idRegimenLaboral')
+            ->select('estaciondetrabajo.*')
+            ->distinct()
+            ->get();
+
+        // Contando las estaciones
+        $num_estaciones = $estaciones->count();
+
+        // Pasar los reintegros a la vista
+        return view('rrhh.planilla.planilla', compact('periodo', 'dia_inicio', 'dia_fin', 'num_dias', 'tareos', 'datos_contables', 'estaciones', 'num_estaciones', 'reintegros'));
     }
-
-    // Listado de las estaciones en la que se tareo entre las fechas del periodo
-    $estaciones = Estaciondetrabajo::join('tareo', 'estaciondetrabajo.idEstacionDeTrabajo', '=', 'tareo.idEstacionDeTrabajo')
-        ->whereBetween('tareo.Fecha', [$dia_inicio, $dia_fin])
-        ->groupBy('estaciondetrabajo.idEstacionDeTrabajo', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'estaciondetrabajo.estado', 'estaciondetrabajo.idRegimenLaboral')
-        ->select('estaciondetrabajo.*')
-        ->distinct()
-        ->get();
-    
-    // Contando las estaciones
-    $num_estaciones = $estaciones->count();
-
-    // Pasar los reintegros a la vista
-    return view('rrhh.planilla.planilla', compact('periodo', 'dia_inicio', 'dia_fin', 'num_dias', 'tareos', 'datos_contables', 'estaciones', 'num_estaciones', 'reintegros'));
-}
 
     //FUNCION PARA CALCULAR DIAS TAREAODS POR PERSONA
     public function TareoPorEstacion($idEstacion, $idRegimenLaboral, $dia_inicio, $dia_fin, $idContrato)
@@ -109,6 +112,17 @@ class PlanillaController extends Controller
                 }
             }
         }
+        $total_dias = 0;
+        foreach ($tareo as $item) {
+            $dia = $item->idCondicionDeTareo;
+            //Condiciones donde cuenta el sistema como dia trabajado
+            $condiciones = [1,2,6,8,9,11,12,13,15];
+            foreach ($condiciones as $id) {
+                if($dia == $id){
+                    $total_dias++;
+                }
+            }
+        }
 
         if ($total_horas !== 0) {
             $monto_adicional = calcularMontoAdicional($dia_inicio, $idContrato, $idEstacion);
@@ -119,27 +133,47 @@ class PlanillaController extends Controller
             } else if ($idRegimenLaboral === 1) {
                 $total_horas = number_format((($total_horas + $monto_adicional) - $monto_restante) / 8, 1);
             }
-            // codigo para los casos especificos           
+            // codigo para los casos especificos
             if ($idRegimenLaboral === 2) {
 		 $total_horas = floor($total_horas * 2) / 2;
 		 $total_horas = number_format($total_horas, 1, '.', '');
 		}
-				
+
 		//if ($total_horas == 30.7) {
 		  //  $total_horas = 31;
 		//}
 		    // Redondear hacia arriba o hacia abajo en casos específicos
-if ($total_horas == 5.3 || $total_horas == 14.1 || $total_horas == 18.3 || $total_horas == 28.3) {
-    $total_horas = floor($total_horas); // Redondea hacia abajo
-}
+        if ($total_horas == 5.3 || $total_horas == 14.1 || $total_horas == 18.3 || $total_horas == 28.3) {
+            $total_horas = floor($total_horas); // Redondea hacia abajo
+        }
 
 
-    
+
 
         }
-       
-       return ($total_horas);
+
+    //    return ($total_horas);
+       return ($total_dias);
     }
+    public function DescansosProgramados($idContrato, $fecha_inicio, $fecha_fin){
+        $idCondicionDescansoProgramado = 7;
+
+        $cantidad = Tareo::where('idContrato', $idContrato)
+            ->where('idCondicionDeTareo', $idCondicionDescansoProgramado)
+            ->whereBetween('Fecha', [$fecha_inicio, $fecha_fin])
+            ->count();
+        return $cantidad;
+    }
+    public function DiasDeFalta($idContrato, $fecha_inicio, $fecha_fin){
+        $idCondicionDescansoProgramado = 3;
+
+        $cantidad = Tareo::where('idContrato', $idContrato)
+            ->where('idCondicionDeTareo', $idCondicionDescansoProgramado)
+            ->whereBetween('Fecha', [$fecha_inicio, $fecha_fin])
+            ->count();
+        return $cantidad;
+    }
+
 
     //FUNCIONA PARA CALCULAR DESCANSO MEDICO
     public function DescansoMedico($idContrato, $dia_inicio, $dia_fin)
@@ -276,7 +310,7 @@ if ($total_horas == 5.3 || $total_horas == 14.1 || $total_horas == 18.3 || $tota
     function QuintaCategoria($sueldo_base)
     {
     	// cambiar la uit en febrero a 5150 ya que se acaba de actualizarz22
-        $uit = 4950; 
+        $uit = 5350;
         //$sueldo = 15000;
         $asignacionFamiliar = 0;
         $sueldoAnual = round($sueldo_base * 12, 2);

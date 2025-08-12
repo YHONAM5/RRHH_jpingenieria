@@ -156,6 +156,7 @@ class TareoController extends Controller
         $regimenLaboralNormal = Estaciondetrabajo::where('idRegimenLaboral', 1)
             ->pluck('idEstacionDeTrabajo')
             ->toArray();
+        $condicionesSinDominical = [1,2,3,4,5,6,7,8,9,10,11,12,14];
 
         if ($idTareo) {
             //ACTUALIZAR TAREO
@@ -200,7 +201,7 @@ class TareoController extends Controller
                 }
 
                 //EVALUAMOS EL REGIMEN LABORAL DE LA ESTACION
-                if (in_array($estacion, $regimenLaboralNormal)) {
+                if (in_array($estacion, $regimenLaboralNormal)&& !in_array($condicionTareo, $condicionesSinDominical)) {
                     $horaDominical = calcularDominical($fecha, $idContrato);
                     $horaEntradaDomingo = '08:00:00';
                     $horaSalidaDomingo = $horaDominical['horaSalidaDomingo'];
@@ -275,7 +276,7 @@ class TareoController extends Controller
 
 
                 //EVALUAMOS EL REGIMEN LABORAL DE LA ESTACION
-                if (in_array($estacion, $regimenLaboralNormal)) {
+                if (in_array($estacion, $regimenLaboralNormal)&& !in_array($condicionTareo, $condicionesSinDominical)) {
                     $horaDominical = calcularDominical($fecha, $idContrato);
                     $horaEntradaDomingo = '08:00:00';
                     $horaSalidaDomingo = $horaDominical['horaSalidaDomingo'];
