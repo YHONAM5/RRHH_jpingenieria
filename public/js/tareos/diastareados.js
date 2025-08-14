@@ -185,24 +185,46 @@ $(document).ready(function() {
             $('input[name="inicioAlmuerzo"]').val('13:00');
             $('input[name="finAlmuerzo"]').val('13:45');
             $('input[name="horaSalida"]').val('17:15');
+
+            $('#grupoHoraIngreso').show();
+            $('#grupoAlmuerzo').show();
+            $('#grupoHoraSalida').show();
+
             mensaje = "Registro normal de asistencia con horarios completos.";
         } else if (selectedValue === '2') { // Tardanza
             $('input[name="horaIngreso"]').val('09:00');
             $('input[name="inicioAlmuerzo"]').val('13:00');
             $('input[name="finAlmuerzo"]').val('13:45');
             $('input[name="horaSalida"]').val('17:15');
+
+            $('#grupoHoraIngreso').show();
+            $('#grupoAlmuerzo').show();
+            $('#grupoHoraSalida').show();
+
             mensaje= "Registro con tardanza. Especifique la hora real de ingreso.";
         } else if (selectedValue === '3') { // Ausencia / descanso médico / descanso programado
             $('input[name="horaIngreso"]').val('00:00');
             $('input[name="inicioAlmuerzo"]').val('00:00');
             $('input[name="finAlmuerzo"]').val('00:00');
             $('input[name="horaSalida"]').val('00:00');
+
+            // Ocultar solo el contenedor visual
+            $('#grupoHoraIngreso').hide();
+            $('#grupoAlmuerzo').hide();
+            $('#grupoHoraSalida').hide();
+
             mensaje = "Ausencia del trabajador. No se registran horarios.";
-        } else if(selectedValue === '4' || selectedValue === '7'){
+        } else if(selectedValue === '4' || selectedValue === '7' || selectedValue === '14' ){
             $('input[name="horaIngreso"]').val('00:00');
             $('input[name="inicioAlmuerzo"]').val('00:00');
             $('input[name="finAlmuerzo"]').val('00:00');
             $('input[name="horaSalida"]').val('00:00');
+
+            // Ocultar solo el contenedor visual
+            $('#grupoHoraIngreso').hide();
+            $('#grupoAlmuerzo').hide();
+            $('#grupoHoraSalida').hide();
+
             mensaje = "Descansos justificados. No se registran horarios.";
         } else if (selectedValue === '12') { // Nocturno
             $('input[name="horaIngreso"]').val('22:00');
@@ -228,6 +250,12 @@ $(document).ready(function() {
             $('input[name="inicioAlmuerzo"]').val('00:00');
             $('input[name="finAlmuerzo"]').val('00:00');
             $('input[name="horaSalida"]').val('00:00');
+
+            // Mostrar los campos si se selecciona otra condición
+            $('#grupoHoraIngreso').show();
+            $('#grupoAlmuerzo').show();
+            $('#grupoHoraSalida').show();
+
             mensaje = "Especifique la hora correspondiente ala condición de tareo.";
         }
         // Mostrar mensaje

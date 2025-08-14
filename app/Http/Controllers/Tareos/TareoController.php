@@ -87,6 +87,7 @@ class TareoController extends Controller
         $dia_fin = $periodo->DiaDeFinDelPeriodo;
         $estaciones = Estaciondetrabajo::all();
         $condicionTareo = Condiciondetareo::all();
+        $regimen_laboral = RegimenLaboral::all();
 
         if ($opcion == '1') {
             $tareos = Tareo::join('contrato', 'tareo.idContrato', '=', 'contrato.idContrato')
@@ -99,7 +100,7 @@ class TareoController extends Controller
                 ->whereBetween('Fecha', [$periodo->DiaDeInicioDelPeriodo, $periodo->DiaDeFinDelPeriodo])
                 ->where('tareo.idEstacionDeTrabajo', $idEstacion)->get();
 
-            return view('rrhh.tareos.dias_tareados.principal', compact('tareos', 'periodo', 'diasTareados', 'estaciones', 'condicionTareo', 'idEstacion', 'estacion_buscada', 'dia_inicio', 'dia_fin'));
+            return view('rrhh.tareos.dias_tareados.principal', compact('tareos', 'periodo', 'diasTareados', 'estaciones', 'condicionTareo', 'idEstacion', 'estacion_buscada', 'dia_inicio', 'dia_fin', 'regimen_laboral'));
         } else if ($opcion == '3') {
             $tareos = Tareo::join('contrato', 'tareo.idContrato', '=', 'contrato.idContrato')
                 ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
@@ -117,7 +118,7 @@ class TareoController extends Controller
                 ->where('contrato.idCondicionDeContrato', 1)
                 ->first();
 
-            return view('rrhh.tareos.dias_tareados.por_trabajador', compact('tareos', 'periodo', 'estaciones', 'condicionTareo', 'empleado'));
+            return view('rrhh.tareos.dias_tareados.por_trabajador', compact('tareos', 'periodo', 'estaciones', 'condicionTareo', 'empleado', 'regimen_laboral'));
         } else {
             $tareos = Tareo::join('contrato', 'tareo.idContrato', '=', 'contrato.idContrato')
                 ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
@@ -127,7 +128,7 @@ class TareoController extends Controller
             $diasTareados = Tareo::join('estaciondetrabajo', 'tareo.idEstacionDeTrabajo', '=', 'estaciondetrabajo.idEstacionDeTrabajo')
                 ->whereBetween('Fecha', [$periodo->DiaDeInicioDelPeriodo, $periodo->DiaDeFinDelPeriodo])->get();
 
-            return view('rrhh.tareos.dias_tareados.tareo_todos', compact('tareos', 'periodo', 'diasTareados', 'estaciones', 'condicionTareo', 'idEstacion'));
+            return view('rrhh.tareos.dias_tareados.tareo_todos', compact('tareos', 'periodo', 'diasTareados', 'estaciones', 'condicionTareo', 'idEstacion', 'regimen_laboral'));
         }
 
     }
@@ -156,7 +157,7 @@ class TareoController extends Controller
         $regimenLaboralNormal = Estaciondetrabajo::where('idRegimenLaboral', 1)
             ->pluck('idEstacionDeTrabajo')
             ->toArray();
-        $condicionesSinDominical = [1,2,3,4,5,6,7,8,9,10,11,12,14];
+        $condicionesSinDominical = [1,2,3,4,5,6,7,8,9,10,11,12,14,15];
 
         if ($idTareo) {
             //ACTUALIZAR TAREO
@@ -165,40 +166,15 @@ class TareoController extends Controller
                 $idContrato = $tareo->idContrato;
                 $DatoContable = Datoscontable::where('idContrato', $idContrato)->first();
 
-                if ($condicionTareo == 8) {
-                    $tareo->Fecha = $fecha;
-                    $tareo->HoraDeIngreso = $horaIngreso;
-                    $tareo->HoraDeInicioDeAlmuerzo = $inicioAlmuerzo;
-                    $tareo->HoraDeFinDeAlmuerzo = $finAlmuerzo;
-                    $tareo->HoraDeSalida = $salida;
-                    $tareo->idEstacionDeTrabajo = $estacion;
-                    $tareo->idCondicionDeTareo = $condicionTareo;
-                    $tareo->idDatoContable = $DatoContable->idDatosContables;
-                    $tareo->save();
-
-                    $newTareo = new Tareo;
-                    $newTareo->Fecha = $fecha;
-                    $newTareo->idContrato = $idContrato;
-                    $newTareo->HoraDeIngreso = $horaIngreso;
-                    $newTareo->HoraDeInicioDeAlmuerzo = $inicioAlmuerzo;
-                    $newTareo->HoraDeFinDeAlmuerzo = $finAlmuerzo;
-                    $newTareo->HoraDeSalida = $salida;
-                    $newTareo->idEstacionDeTrabajo = $estacion;
-                    $newTareo->idCondicionDeTareo = 1;
-                    $newTareo->idDatoContable = $DatoContable->idDatosContables;
-                    $newTareo->save();
-
-                } else {
-                    $tareo->Fecha = $fecha;
-                    $tareo->HoraDeIngreso = $horaIngreso;
-                    $tareo->HoraDeInicioDeAlmuerzo = $inicioAlmuerzo;
-                    $tareo->HoraDeFinDeAlmuerzo = $finAlmuerzo;
-                    $tareo->HoraDeSalida = $salida;
-                    $tareo->idEstacionDeTrabajo = $estacion;
-                    $tareo->idCondicionDeTareo = $condicionTareo;
-                    $tareo->idDatoContable = $DatoContable->idDatosContables;
-                    $tareo->save();
-                }
+                $tareo->Fecha = $fecha;
+                $tareo->HoraDeIngreso = $horaIngreso;
+                $tareo->HoraDeInicioDeAlmuerzo = $inicioAlmuerzo;
+                $tareo->HoraDeFinDeAlmuerzo = $finAlmuerzo;
+                $tareo->HoraDeSalida = $salida;
+                $tareo->idEstacionDeTrabajo = $estacion;
+                $tareo->idCondicionDeTareo = $condicionTareo;
+                $tareo->idDatoContable = $DatoContable->idDatosContables;
+                $tareo->save();
 
                 //EVALUAMOS EL REGIMEN LABORAL DE LA ESTACION
                 if (in_array($estacion, $regimenLaboralNormal)&& !in_array($condicionTareo, $condicionesSinDominical)) {
@@ -243,37 +219,47 @@ class TareoController extends Controller
             try {
                 $DatoContable = Datoscontable::where('idContrato', $idContrato)->first();
 
-                if ($condicionTareo == 8) {
-                    for ($i = 1; $i <= 2; $i++) {
-                        if ($i == 2) {
-                            $condicionTareo = 1;
-                        }
-                        $tareo = new Tareo;
-                        $tareo->idContrato = $idContrato;
-                        $tareo->Fecha = $fecha;
-                        $tareo->HoraDeIngreso = $horaIngreso;
-                        $tareo->HoraDeInicioDeAlmuerzo = $inicioAlmuerzo;
-                        $tareo->HoraDeFinDeAlmuerzo = $finAlmuerzo;
-                        $tareo->HoraDeSalida = $salida;
-                        $tareo->idEstacionDeTrabajo = $estacion;
-                        $tareo->idCondicionDeTareo = $condicionTareo;
-                        $tareo->idDatoContable = $DatoContable->idDatosContables;
-                        $tareo->save();
-                    }
-                } else {
-                    $tareo = new Tareo;
-                    $tareo->idContrato = $idContrato;
-                    $tareo->Fecha = $fecha;
-                    $tareo->HoraDeIngreso = $horaIngreso;
-                    $tareo->HoraDeInicioDeAlmuerzo = $inicioAlmuerzo;
-                    $tareo->HoraDeFinDeAlmuerzo = $finAlmuerzo;
-                    $tareo->HoraDeSalida = $salida;
-                    $tareo->idEstacionDeTrabajo = $estacion;
-                    $tareo->idCondicionDeTareo = $condicionTareo;
-                    $tareo->idDatoContable = $DatoContable->idDatosContables;
-                    $tareo->save();
-                }
-
+                // if ($condicionTareo == 8) {
+                //     for ($i = 1; $i <= 2; $i++) {
+                //         if ($i == 2) {
+                //             $condicionTareo = 1;
+                //         }
+                //         $tareo = new Tareo;
+                //         $tareo->idContrato = $idContrato;
+                //         $tareo->Fecha = $fecha;
+                //         $tareo->HoraDeIngreso = $horaIngreso;
+                //         $tareo->HoraDeInicioDeAlmuerzo = $inicioAlmuerzo;
+                //         $tareo->HoraDeFinDeAlmuerzo = $finAlmuerzo;
+                //         $tareo->HoraDeSalida = $salida;
+                //         $tareo->idEstacionDeTrabajo = $estacion;
+                //         $tareo->idCondicionDeTareo = $condicionTareo;
+                //         $tareo->idDatoContable = $DatoContable->idDatosContables;
+                //         $tareo->save();
+                //     }
+                // } else {
+                //     $tareo = new Tareo;
+                //     $tareo->idContrato = $idContrato;
+                //     $tareo->Fecha = $fecha;
+                //     $tareo->HoraDeIngreso = $horaIngreso;
+                //     $tareo->HoraDeInicioDeAlmuerzo = $inicioAlmuerzo;
+                //     $tareo->HoraDeFinDeAlmuerzo = $finAlmuerzo;
+                //     $tareo->HoraDeSalida = $salida;
+                //     $tareo->idEstacionDeTrabajo = $estacion;
+                //     $tareo->idCondicionDeTareo = $condicionTareo;
+                //     $tareo->idDatoContable = $DatoContable->idDatosContables;
+                //     $tareo->save();
+                // }
+                $tareo = new Tareo;
+                $tareo->idContrato = $idContrato;
+                $tareo->Fecha = $fecha;
+                $tareo->HoraDeIngreso = $horaIngreso;
+                $tareo->HoraDeInicioDeAlmuerzo = $inicioAlmuerzo;
+                $tareo->HoraDeFinDeAlmuerzo = $finAlmuerzo;
+                $tareo->HoraDeSalida = $salida;
+                $tareo->idEstacionDeTrabajo = $estacion;
+                $tareo->idCondicionDeTareo = $condicionTareo;
+                $tareo->idDatoContable = $DatoContable->idDatosContables;
+                $tareo->save();
 
                 //EVALUAMOS EL REGIMEN LABORAL DE LA ESTACION
                 if (in_array($estacion, $regimenLaboralNormal)&& !in_array($condicionTareo, $condicionesSinDominical)) {
@@ -333,6 +319,8 @@ class TareoController extends Controller
         if ($idCondicion == 1) {
             return 'N';
         } else if ($idCondicion == 2) {
+            return 'T';
+        } else if ($idCondicion == 3){
             return 'F';
         } else if ($idCondicion == 4) {
             return 'DM';
@@ -343,9 +331,11 @@ class TareoController extends Controller
         } else if ($idCondicion == 7) {
             return 'DP';
         } else if ($idCondicion == 8) {
-            return 'FT';
+            return 'F.TJ';
         } else if ($idCondicion == 9) {
             return 'V';
+        } else if ($idCondicion == 11) {
+            return 'D.TJ';
         } elseif ($idCondicion == 12) {
             return 'HN';
         } elseif ($idCondicion == 14) {

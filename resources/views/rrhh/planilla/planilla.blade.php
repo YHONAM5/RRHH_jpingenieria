@@ -477,6 +477,7 @@
                         @php
                             $total_horaextra = new \App\Http\Controllers\Planilla\PlanillaController();
                             $horas_extras_value = $total_horaextra->TotalHorasExtras(
+                                $sueldo_base,
                                 $item->idContrato,
                                 $dia_inicio,
                                 $dia_fin,
@@ -530,7 +531,7 @@
                         {{-- Quinta Categoria --}}
                         @php
                             $quinta_categoria = new \App\Http\Controllers\Planilla\PlanillaController();
-                            $quinta_categoria_value = $quinta_categoria->QuintaCategoria($remuneracion_asegurable);
+                            $quinta_categoria_value = $quinta_categoria->CalcularDescuento5taCategoria($sueldo_base + $asignacion_familiar_value, $item->Fecha);
                             echo 'S/' . $quinta_categoria_value;
                             $totalQuinta += $quinta_categoria_value;
                         @endphp

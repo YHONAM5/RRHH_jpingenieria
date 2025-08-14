@@ -23,10 +23,7 @@ function tiempoTrabajadoTotal ($subtoral, $tiempo1, $tiempo2, $tiempo3, $tiempo4
 
     $subtotal = $sub1 - $sub2;
 
-    // $total = gmdate('H:i', $subtotal);
-    $total = $subtotal;
-
-    return $total;
+    return $subtotal;
 }
 
 function calcularDominical($fecha,$contrato){

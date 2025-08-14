@@ -43,9 +43,7 @@
                                 $fechaActual->add($intervalo);
                             @endphp
                         @endfor
-                        {{-- <th>TOTAL TAREADO</th> --}}
-                        <th>TOTAL HORAS</th>
-                        <th>TOTAL DIAS</th>
+                        <th>TOTAL TAREADO</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -54,23 +52,6 @@
                         $contador = 1;
                         $totalFaltas = 0;
                         $totalDescansosProgramados = 0;
-                        $leyendasCondicion = [
-                            1 => 'N',   // NORMAL
-                            2 => 'T',   // TARDANZA
-                            3 => 'F',   // FALTA
-                            4 => 'DM',  // DESCANSO MEDICO
-                            5 => 'SL',  // SIN LICENCIA
-                            6 => 'CL',  // CON LICENCIA
-                            7 => 'DP',  // DESCANSO PROGRAMADO
-                            8 => 'FT',  // FERIADO TRABAJADO
-                            9 => 'V',   // VACACIONES
-                            10 => 'VIA',// VIAJE
-                            11 => 'DT', // DESCANSO TRABAJADO
-                            12 => 'HN', // HORARIO NOCTURNO
-                            13 => 'PT', // PART TIME
-                            14 => 'F',  // FERIADO
-                            15 => 'LP', // LICENCIA PATERNIDAD
-                        ];
                     @endphp
 
                 @foreach($tareos as $tareo)
@@ -99,18 +80,20 @@
                                     <td class="text-center align-middle p-0">
                                 @endif
 
-                                {{-- @foreach ($diasTareados as $item)
+                                @foreach ($diasTareados as $item)
                                     @if ($tareo->idContrato == $item->idContrato && $item->Fecha == $date)
                                             @php
                                                 $tiempo = tiempoTrabajado($item->HoraDeIngreso, $item->HoraDeSalida, $item->HoraDeInicioDeAlmuerzo, $item->HoraDeFinDeAlmuerzo);
+                                                $tiempoSubTotal = tiempoTrabajadoTotal($tiempo,$item->HoraDeIngreso,$item->HoraDeSalida,$item->HoraDeInicioDeAlmuerzo,$item->HoraDeFinDeAlmuerzo);
+                                                $totalHorasTareados += $tiempoSubTotal;
                                                 $diaDeLaSemana = Carbon\Carbon::parse($item->Fecha);
                                                 $esSabado = $diaDeLaSemana->dayOfWeek === Carbon\Carbon::SATURDAY;
                                                 $regimen_laboral = $item->idRegimenLaboral;
                                                 $idCondicion = $item->idCondicionDeTareo;
 
-                                            @endphp --}}
+                                            @endphp
                                             {{-- EVALUAMOS SI ES SABADO PARA IMPRIMIR AMARILLO SI ES TARDE O VERDE SI ES TEMPRANO --}}
-                                            {{-- @if (in_array($regimen_laboral, [1]))
+                                            @if (in_array($regimen_laboral, [1]))
                                                 @if ($esSabado)
                                                     @if (strtotime($tiempo) >= strtotime('05:30:00'))
                                                         <button type="button" class="btn btn-success btn-sm p-0 btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
@@ -134,55 +117,24 @@
                                                     @endif
                                                 @endif
                                             @else
-                                            <button type="button" class="btn btn-success btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
+                                            @php
+                                                $leyendaTareo = new \App\Http\Controllers\Tareos\TareoController();
+                                                $leyendaTareo_value = $leyendaTareo->leyendaTareo($idCondicion);
+                                                $colorClass = match ($leyendaTareo_value) {
+                                                    'DP' => 'btn-info',
+                                                    'N' => 'btn-success',
+                                                    'F' => 'btn-warning',
+                                                    'F.TJ' => 'btn-light',
+                                                    'D.TJ' => 'btn-primary',
+                                                    default => 'btn-secondary',
+                                                };
+                                            @endphp
+                                            <button type="button" class="btn {{$colorClass}} btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
                                                 @php
-                                                    $leyendaTareo = new \App\Http\Controllers\Tareos\TareoController();
-                                                    $leyendaTareo_value = $leyendaTareo->leyendaTareo($idCondicion);
                                                     echo $leyendaTareo_value;
                                                 @endphp
                                             </button>
                                             @endif
-
-                                        @php
-                                            $fechaEncontrada = true;
-                                        @endphp
-                                    @endif
-                                @endforeach --}}
-                                @foreach ($diasTareados as $item)
-                                    @if ($tareo->idContrato == $item->idContrato && $item->Fecha == $date)
-                                        @php
-                                            $tiempo = tiempoTrabajado($item->HoraDeIngreso, $item->HoraDeSalida, $item->HoraDeInicioDeAlmuerzo, $item->HoraDeFinDeAlmuerzo);
-                                            $tiempoSubTotal = tiempoTrabajadoTotal($tiempo,$item->HoraDeIngreso, $item->HoraDeSalida, $item->HoraDeInicioDeAlmuerzo, $item->HoraDeFinDeAlmuerzo);
-                                            $totalHorasTareados += $tiempoSubTotal;
-                                            $diaDeLaSemana = Carbon\Carbon::parse($item->Fecha);
-                                            $esSabado = $diaDeLaSemana->dayOfWeek === Carbon\Carbon::SATURDAY;
-                                            $regimen_laboral = $item->idRegimenLaboral;
-                                            $idCondicion = $item->idCondicionDeTareo;
-                                        @endphp
-
-                                        {{-- LÓGICA UNIFICADA PARA TODAS LAS ESTACIONES --}}
-                                        @if ($esSabado)
-                                            @if (strtotime($tiempo) >= strtotime('05:30:00'))
-                                                <button type="button" class="btn btn-success btn-sm p-0 btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
-                                                    {{ $tiempo }}
-                                                </button>
-                                            @else
-                                                <button type="button" class="btn btn-warning btn-sm p-0 btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
-                                                    {{ $tiempo }}
-                                                </button>
-                                            @endif
-                                        @else
-                                            @if (strtotime($tiempo) >= strtotime('08:30:00'))
-                                                <button type="button" class="btn btn-success btn-sm p-0 btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
-                                                    {{ $tiempo }}
-                                                </button>
-                                            @else
-                                                <button type="button" class="btn btn-warning btn-sm p-0 btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
-                                                    {{ $tiempo }}
-                                                </button>
-                                            @endif
-                                        @endif
-
                                         @php
                                             $fechaEncontrada = true;
                                         @endphp
@@ -198,28 +150,13 @@
                                     @endphp
                                 </td>
                             @endfor
-                            {{-- TOTAL TAREADOS
                             <td class="bg-info">
+                                {{-- MOSTRANDO TOTAL DIAS TAREADOS --}}
                                 @php
                                 $tareo_estacion = new \App\Http\Controllers\Planilla\PlanillaController();
                                 $tareo_estacion_value = $tareo_estacion->TareoPorEstacion($estacion_buscada->idEstacionDeTrabajo,$estacion_buscada->idRegimenLaboral , $dia_inicio, $dia_fin, $tareo->idContrato);
                                         echo $tareo_estacion_value;
                                 @endphp
-                            </td> --}}
-                            <td class="bg-info">
-                                {{--Mostrando total de horas tareadas--}}
-                                @php
-                                    $horas = floor($totalHorasTareados/ 3600);
-                                    $nimutos = floor(($totalHorasTareados %3600) /60);
-                                    echo $horas.':'.$nimutos;
-                                @endphp
-                            </td>
-                            <td class="bg-info">
-                                {{--Mostrar dias tareadas--}}
-                                {{-- @php
-                                    $totalDias = totalDiasTareados($tareos, $tareo->idContrato, $dia_inicio, $dia_fin);
-                                    echo $totalDias;
-                                @endphp --}}
                             </td>
                         </tr>
                         @php
@@ -253,5 +190,3 @@ https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js
         const eliminarTareo = "{{ route('eliminarTareo') }}"
     </script>
 @stop
-
-@php use App\Helpers\TareoHelper; @endphp
