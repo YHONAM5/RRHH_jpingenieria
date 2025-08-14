@@ -12,7 +12,7 @@
 
 <div class="card">
     <div class="card-header bg-success">
-        
+
     </div>
     <div class="card-body">
         <div class="col-md-12">
@@ -42,7 +42,7 @@
                             @php
                                 $fechaActual->add($intervalo);
                             @endphp
-                        @endfor 
+                        @endfor
                         <th>TOTAL TAREADO</th>
                     </tr>
                 </thead>
@@ -53,7 +53,7 @@
                         $totalFaltas = 0;
                         $totalDescansosProgramados = 0;
                     @endphp
-                    
+
                 @foreach($tareos as $tareo)
                     @if (!in_array($tareo->idContrato, $personasImpresas))
                         <tr>
@@ -67,27 +67,30 @@
                                 $intervalo = new DateInterval('P1D');
                                 $fechaActual = clone $fechaInicial;
                                 $fechaEncontrada = false;
+                                $totalHorasTareados = 0;
                             @endphp
-                
+
                             @for ($date = Carbon\Carbon::parse($fechaInicial); $date <= $fechaFinal; $date->add($intervalo))
                                 @php
                                     $esDomingo = $date->dayOfWeek === Carbon\Carbon::SUNDAY;
                                 @endphp
                                 @if ($esDomingo)
-                                    <td class="text-center align-middle p-0 bg-danger">    
+                                    <td class="text-center align-middle p-0 bg-danger">
                                 @else
-                                    <td class="text-center align-middle p-0">    
+                                    <td class="text-center align-middle p-0">
                                 @endif
-                                
+
                                 @foreach ($diasTareados as $item)
-                                    @if ($tareo->idContrato == $item->idContrato && $item->Fecha == $date)   
+                                    @if ($tareo->idContrato == $item->idContrato && $item->Fecha == $date)
                                             @php
                                                 $tiempo = tiempoTrabajado($item->HoraDeIngreso, $item->HoraDeSalida, $item->HoraDeInicioDeAlmuerzo, $item->HoraDeFinDeAlmuerzo);
+                                                $tiempoSubTotal = tiempoTrabajadoTotal($tiempo,$item->HoraDeIngreso,$item->HoraDeSalida,$item->HoraDeInicioDeAlmuerzo,$item->HoraDeFinDeAlmuerzo);
+                                                $totalHorasTareados += $tiempoSubTotal;
                                                 $diaDeLaSemana = Carbon\Carbon::parse($item->Fecha);
                                                 $esSabado = $diaDeLaSemana->dayOfWeek === Carbon\Carbon::SATURDAY;
                                                 $regimen_laboral = $item->idRegimenLaboral;
                                                 $idCondicion = $item->idCondicionDeTareo;
-                                               
+
                                             @endphp
                                             {{-- EVALUAMOS SI ES SABADO PARA IMPRIMIR AMARILLO SI ES TARDE O VERDE SI ES TEMPRANO --}}
                                             @if (in_array($regimen_laboral, [1]))
@@ -96,7 +99,7 @@
                                                         <button type="button" class="btn btn-success btn-sm p-0 btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
                                                             {{ $tiempo }}
                                                         </button>
-                                                        
+
                                                     @else
                                                         <button type="button" class="btn btn-warning btn-sm p-0 btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
                                                             {{ $tiempo }}
@@ -114,30 +117,39 @@
                                                     @endif
                                                 @endif
                                             @else
-                                            <button type="button" class="btn btn-success btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
+                                            @php
+                                                $leyendaTareo = new \App\Http\Controllers\Tareos\TareoController();
+                                                $leyendaTareo_value = $leyendaTareo->leyendaTareo($idCondicion);
+                                                $colorClass = match ($leyendaTareo_value) {
+                                                    'DP' => 'btn-info',
+                                                    'N' => 'btn-success',
+                                                    'F' => 'btn-warning',
+                                                    'F.TJ' => 'btn-light',
+                                                    'D.TJ' => 'btn-primary',
+                                                    default => 'btn-secondary',
+                                                };
+                                            @endphp
+                                            <button type="button" class="btn {{$colorClass}} btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
                                                 @php
-                                                    $leyendaTareo = new \App\Http\Controllers\Tareos\TareoController();
-                                                    $leyendaTareo_value = $leyendaTareo->leyendaTareo($idCondicion);
                                                     echo $leyendaTareo_value;
                                                 @endphp
                                             </button>
                                             @endif
-                                        
                                         @php
                                             $fechaEncontrada = true;
                                         @endphp
-                                    @endif    
+                                    @endif
                                 @endforeach
                                 @if(!$fechaEncontrada)
                                     <button type="button" class="btn btn-outline-dark btn-sm p-1 btn-tareo" data-toggle="modal" data-target="#tareoModal" data-contrato="{{ $tareo->idContrato }}" data-fecha="{{ $date->format('Y-m-d') }}">
                                         <span class="text-white">NR</span>
-                                    </button> 
+                                    </button>
                                 @endif
                                     @php
-                                        $fechaEncontrada = false;    
+                                        $fechaEncontrada = false;
                                     @endphp
                                 </td>
-                            @endfor   
+                            @endfor
                             <td class="bg-info">
                                 {{-- MOSTRANDO TOTAL DIAS TAREADOS --}}
                                 @php

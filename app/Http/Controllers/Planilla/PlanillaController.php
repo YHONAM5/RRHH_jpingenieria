@@ -12,10 +12,13 @@ use App\Models\Periodo;
 use App\Models\Prestamo;
 use App\Models\Bono;
 use App\Models\Tareo;
+use Carbon\Carbon;
 use DateInterval;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+
+use function PHPUnit\Framework\returnSelf;
 
 class PlanillaController extends Controller
 {
@@ -27,54 +30,55 @@ class PlanillaController extends Controller
     }
 
     public function BuscarPlanilla(Request $request)
-{
-    $idPeriodo = $request->input('periodo');
-    $periodo = Periodo::find($idPeriodo);
-    $num_dias = $periodo->CantidadDeDias;
-    $dia_inicio = $periodo->DiaDeInicioDelPeriodo;
-    $dia_fin = $periodo->DiaDeFinDelPeriodo;
+    {
+        $idPeriodo = $request->input('periodo');
+        $periodo = Periodo::find($idPeriodo);
+        $num_dias = $periodo->CantidadDeDias;
+        // $num_dias = 30;
+        $dia_inicio = $periodo->DiaDeInicioDelPeriodo;
+        $dia_fin = $periodo->DiaDeFinDelPeriodo;
 
-    $tareos = Tareo::join('contrato', 'tareo.idContrato', '=', 'contrato.idContrato')
-        ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
-        ->join('persona', 'empleado.idPersona', '=', 'persona.idPersona')
-        ->join('datoscontables', 'contrato.idContrato', '=', 'datoscontables.idContrato')
-        ->join('estaciondetrabajo', 'contrato.idEstacionTrabajo', '=', 'estaciondetrabajo.idEstacionDeTrabajo')
-        ->join('fondodepension', 'empleado.idFondoDePension', '=', 'fondodepension.idFondoDePension')
-        ->whereIn('tareo.idDatoContable', function($query) use ($dia_inicio, $dia_fin) {
-            $query->select(DB::raw('MAX(idDatoContable)'))
-                  ->from('tareo')
-                  ->whereBetween('Fecha', [$dia_inicio, $dia_fin])
-                  ->groupBy('idContrato');
-        })
-        ->groupBy('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'fondodepension.NombreEntidad', 'datoscontables.SueldoBase', 'persona.Email')
-        ->select('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'persona.Email', 'fondodepension.NombreEntidad', DB::raw('MAX(datoscontables.SueldoBase) AS SueldoBase'))
-        ->get();
+        $tareos = Tareo::join('contrato', 'tareo.idContrato', '=', 'contrato.idContrato')
+            ->join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+            ->join('persona', 'empleado.idPersona', '=', 'persona.idPersona')
+            ->join('datoscontables', 'contrato.idContrato', '=', 'datoscontables.idContrato')
+            ->join('estaciondetrabajo', 'contrato.idEstacionTrabajo', '=', 'estaciondetrabajo.idEstacionDeTrabajo')
+            ->join('fondodepension', 'empleado.idFondoDePension', '=', 'fondodepension.idFondoDePension')
+            ->whereIn('tareo.idDatoContable', function($query) use ($dia_inicio, $dia_fin) {
+                $query->select(DB::raw('MAX(idDatoContable)'))
+                    ->from('tareo')
+                    ->whereBetween('Fecha', [$dia_inicio, $dia_fin])
+                    ->groupBy('idContrato');
+            })
+            ->groupBy('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'fondodepension.NombreEntidad', 'datoscontables.SueldoBase', 'persona.Email')
+            ->select('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'persona.Email', 'fondodepension.NombreEntidad', DB::raw('MAX(datoscontables.SueldoBase) AS SueldoBase'))
+            ->get();
 
-    $datos_contables = Datoscontable::all();
+        $datos_contables = Datoscontable::all();
 
-    // Obtener el reintegro para cada contrato
-    $reintegros = [];
-    foreach ($tareos as $tareo) {
-        $reintegro = Bono::where('idContrato', $tareo->idContrato)
-                         ->where('idPeriodo', $idPeriodo)
-                         ->sum('Reintegro');
-        $reintegros[$tareo->idContrato] = $reintegro;
+        // Obtener el reintegro para cada contrato
+        $reintegros = [];
+        foreach ($tareos as $tareo) {
+            $reintegro = Bono::where('idContrato', $tareo->idContrato)
+                            ->where('idPeriodo', $idPeriodo)
+                            ->sum('Reintegro');
+            $reintegros[$tareo->idContrato] = $reintegro;
+        }
+
+        // Listado de las estaciones en la que se tareo entre las fechas del periodo
+        $estaciones = Estaciondetrabajo::join('tareo', 'estaciondetrabajo.idEstacionDeTrabajo', '=', 'tareo.idEstacionDeTrabajo')
+            ->whereBetween('tareo.Fecha', [$dia_inicio, $dia_fin])
+            ->groupBy('estaciondetrabajo.idEstacionDeTrabajo', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'estaciondetrabajo.estado', 'estaciondetrabajo.idRegimenLaboral')
+            ->select('estaciondetrabajo.*')
+            ->distinct()
+            ->get();
+
+        // Contando las estaciones
+        $num_estaciones = $estaciones->count();
+
+        // Pasar los reintegros a la vista
+        return view('rrhh.planilla.planilla', compact('periodo', 'dia_inicio', 'dia_fin', 'num_dias', 'tareos', 'datos_contables', 'estaciones', 'num_estaciones', 'reintegros'));
     }
-
-    // Listado de las estaciones en la que se tareo entre las fechas del periodo
-    $estaciones = Estaciondetrabajo::join('tareo', 'estaciondetrabajo.idEstacionDeTrabajo', '=', 'tareo.idEstacionDeTrabajo')
-        ->whereBetween('tareo.Fecha', [$dia_inicio, $dia_fin])
-        ->groupBy('estaciondetrabajo.idEstacionDeTrabajo', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'estaciondetrabajo.estado', 'estaciondetrabajo.idRegimenLaboral')
-        ->select('estaciondetrabajo.*')
-        ->distinct()
-        ->get();
-    
-    // Contando las estaciones
-    $num_estaciones = $estaciones->count();
-
-    // Pasar los reintegros a la vista
-    return view('rrhh.planilla.planilla', compact('periodo', 'dia_inicio', 'dia_fin', 'num_dias', 'tareos', 'datos_contables', 'estaciones', 'num_estaciones', 'reintegros'));
-}
 
     //FUNCION PARA CALCULAR DIAS TAREAODS POR PERSONA
     public function TareoPorEstacion($idEstacion, $idRegimenLaboral, $dia_inicio, $dia_fin, $idContrato)
@@ -109,6 +113,17 @@ class PlanillaController extends Controller
                 }
             }
         }
+        $total_dias = 0;
+        foreach ($tareo as $item) {
+            $dia = $item->idCondicionDeTareo;
+            //Condiciones donde cuenta el sistema como dia trabajado
+            $condiciones = [1,2,6,8,9,11,12,13,15];
+            foreach ($condiciones as $id) {
+                if($dia == $id){
+                    $total_dias++;
+                }
+            }
+        }
 
         if ($total_horas !== 0) {
             $monto_adicional = calcularMontoAdicional($dia_inicio, $idContrato, $idEstacion);
@@ -119,27 +134,47 @@ class PlanillaController extends Controller
             } else if ($idRegimenLaboral === 1) {
                 $total_horas = number_format((($total_horas + $monto_adicional) - $monto_restante) / 8, 1);
             }
-            // codigo para los casos especificos           
+            // codigo para los casos especificos
             if ($idRegimenLaboral === 2) {
 		 $total_horas = floor($total_horas * 2) / 2;
 		 $total_horas = number_format($total_horas, 1, '.', '');
 		}
-				
+
 		//if ($total_horas == 30.7) {
 		  //  $total_horas = 31;
 		//}
 		    // Redondear hacia arriba o hacia abajo en casos específicos
-if ($total_horas == 5.3 || $total_horas == 14.1 || $total_horas == 18.3 || $total_horas == 28.3) {
-    $total_horas = floor($total_horas); // Redondea hacia abajo
-}
+        if ($total_horas == 5.3 || $total_horas == 14.1 || $total_horas == 18.3 || $total_horas == 28.3) {
+            $total_horas = floor($total_horas); // Redondea hacia abajo
+        }
 
 
-    
+
 
         }
-       
-       return ($total_horas);
+
+    //    return ($total_horas);
+       return ($total_dias);
     }
+    public function DescansosProgramados($idContrato, $fecha_inicio, $fecha_fin){
+        $idCondicionDescansoProgramado = 7;
+
+        $cantidad = Tareo::where('idContrato', $idContrato)
+            ->where('idCondicionDeTareo', $idCondicionDescansoProgramado)
+            ->whereBetween('Fecha', [$fecha_inicio, $fecha_fin])
+            ->count();
+        return $cantidad;
+    }
+    public function DiasDeFalta($idContrato, $fecha_inicio, $fecha_fin){
+        $idCondicionDescansoProgramado = 3;
+
+        $cantidad = Tareo::where('idContrato', $idContrato)
+            ->where('idCondicionDeTareo', $idCondicionDescansoProgramado)
+            ->whereBetween('Fecha', [$fecha_inicio, $fecha_fin])
+            ->count();
+        return $cantidad;
+    }
+
 
     //FUNCIONA PARA CALCULAR DESCANSO MEDICO
     public function DescansoMedico($idContrato, $dia_inicio, $dia_fin)
@@ -241,7 +276,7 @@ if ($total_horas == 5.3 || $total_horas == 14.1 || $total_horas == 18.3 || $tota
     }
 
     //FUNCION PARA CALCULAR TOTAL DE HORAS EXTRAS
-    public function TotalHorasExtras($idContrato, $dia_inicio, $dia_fin)
+    public function TotalHorasExtras($sueldo, $idContrato, $dia_inicio, $dia_fin)
     {
         $horasExtras = Tareo::join('horasextras', 'tareo.idHorasExtras', '=', 'horasextras.idHorasExtras')
             ->where('tareo.idContrato', $idContrato)
@@ -250,7 +285,7 @@ if ($total_horas == 5.3 || $total_horas == 14.1 || $total_horas == 18.3 || $tota
 
         $hora25 = 0;
         $hora35 = 0;
-        $sueldo_bruto = 1485.48;
+        $sueldo_bruto = $sueldo;
         foreach ($horasExtras as $he) {
             $hora25 += $he->ValorDe25;
             $hora35 += $he->ValorDe35;
@@ -264,6 +299,29 @@ if ($total_horas == 5.3 || $total_horas == 14.1 || $total_horas == 18.3 || $tota
     //FUNCION PARA CALCULAR PORCENTAJE DE FONDO
     public function PorcentajeFondo($idContrato, $rem_asegurable)
     {
+        // $porcentaje = Contrato::join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
+        //     ->join('fondodepension', 'empleado.idFondoDePension', '=', 'fondodepension.idFondoDePension')
+        //     ->select('fondodepension.NombreEntidad')
+        //     ->where('contrato.idContrato', $idContrato)->first();
+        // $monto_porcentaje = $porcentaje->PorcentajeDeDescuento;
+        // $nombrePension = $porcentaje->NombreEntidad;
+        // $descuento_fondo = 0;
+        // $penciones = [
+        //     'ONP' => 13.00,
+        //     'AFP INTEGRA' => 11.84,
+        //     'AFP HABITAD'=> 11.84,
+        //     'AFP PRIMA' => 11.84,
+        //     'AFP PROFUTURO' => 11.70
+        // ];
+        // foreach ($penciones as $nombre => $porc) {
+        //     if($nombrePension == $nombre){
+        //         $descuento_fondo = round((($rem_asegurable * $porc)/100),2);
+        //     }else{
+        //         $descuento_fondo = 0;
+        //     }
+        // }
+        // return ($descuento_fondo);
+
         $porcentaje = Contrato::join('empleado', 'contrato.idEmpleado', '=', 'empleado.idEmpleado')
             ->join('fondodepension', 'empleado.idFondoDePension', '=', 'fondodepension.idFondoDePension')
             ->where('contrato.idContrato', $idContrato)->first();
@@ -276,7 +334,7 @@ if ($total_horas == 5.3 || $total_horas == 14.1 || $total_horas == 18.3 || $tota
     function QuintaCategoria($sueldo_base)
     {
     	// cambiar la uit en febrero a 5150 ya que se acaba de actualizarz22
-        $uit = 4950; 
+        $uit = 5350;
         //$sueldo = 15000;
         $asignacionFamiliar = 0;
         $sueldoAnual = round($sueldo_base * 12, 2);
@@ -321,6 +379,161 @@ if ($total_horas == 5.3 || $total_horas == 14.1 || $total_horas == 18.3 || $tota
         }
         return (double) $qcate;
     }
+    function calcularRetencionQuintaCategoria(
+        float $sueldo_base_mensual,
+        int $uit_anual,
+        int $mes_actual,
+        float $ingresos_acumulados_hasta_mes_anterior = 0,
+        float $retenciones_acumuladas_hasta_mes_anterior = 0
+    ): float {
+
+        // 1. Cálculo de la Renta Bruta Proyectada Anual
+        $sueldos_restantes = (12 - $mes_actual);
+        $gratificaciones_restantes = 0;
+
+        // Proyección de gratificaciones
+        if ($mes_actual <= 6) { // Si estamos antes o en junio, se proyectan ambas gratificaciones
+            $gratificaciones_restantes += $sueldo_base_mensual; // Julio
+        }
+        if ($mes_actual <= 11) { // Si estamos antes o en noviembre, se proyecta la de diciembre
+            $gratificaciones_restantes += $sueldo_base_mensual; // Diciembre
+        }
+
+        $renta_bruta_proyectada = $ingresos_acumulados_hasta_mes_anterior +
+                                ($sueldo_base_mensual * ($sueldos_restantes + 1)) +
+                                $gratificaciones_restantes;
+
+        // 2. Deducción de 7 UIT
+        $deduccion_7_uit = 7 * $uit_anual;
+        $renta_neta_imponible = max(0, $renta_bruta_proyectada - $deduccion_7_uit);
+
+        // 3. Cálculo del Impuesto Anual Proyectado (según tramos)
+        $impuesto_anual_proyectado = 0;
+
+        // Tramos de la SUNAT (valores en UIT)
+        $tramo1_limite_uit = 5;
+        $tramo2_limite_uit = 20;
+        $tramo3_limite_uit = 35;
+        $tramo4_limite_uit = 45;
+
+        $tramo1_monto = $tramo1_limite_uit * $uit_anual;
+        $tramo2_monto = ($tramo2_limite_uit - $tramo1_limite_uit) * $uit_anual;
+        $tramo3_monto = ($tramo3_limite_uit - $tramo2_limite_uit) * $uit_anual;
+        $tramo4_monto = ($tramo4_limite_uit - $tramo3_limite_uit) * $uit_anual;
+
+        // Aplicación de tasas
+        if ($renta_neta_imponible > 0) {
+            if ($renta_neta_imponible <= $tramo1_monto) {
+                $impuesto_anual_proyectado = $renta_neta_imponible * 0.08;
+            } elseif ($renta_neta_imponible <= ($tramo1_monto + $tramo2_monto)) {
+                $impuesto_anual_proyectado = ($tramo1_monto * 0.08) +
+                                            (($renta_neta_imponible - $tramo1_monto) * 0.14);
+            } elseif ($renta_neta_imponible <= ($tramo1_monto + $tramo2_monto + $tramo3_monto)) {
+                $impuesto_anual_proyectado = ($tramo1_monto * 0.08) +
+                                            ($tramo2_monto * 0.14) +
+                                            (($renta_neta_imponible - ($tramo1_monto + $tramo2_monto)) * 0.17);
+            } elseif ($renta_neta_imponible <= ($tramo1_monto + $tramo2_monto + $tramo3_monto + $tramo4_monto)) {
+                $impuesto_anual_proyectado = ($tramo1_monto * 0.08) +
+                                            ($tramo2_monto * 0.14) +
+                                            ($tramo3_monto * 0.17) +
+                                            (($renta_neta_imponible - ($tramo1_monto + $tramo2_monto + $tramo3_monto)) * 0.20);
+            } else {
+                $impuesto_anual_proyectado = ($tramo1_monto * 0.08) +
+                                            ($tramo2_monto * 0.14) +
+                                            ($tramo3_monto * 0.17) +
+                                            ($tramo4_monto * 0.20) +
+                                            (($renta_neta_imponible - ($tramo1_monto + $tramo2_monto + $tramo3_monto + $tramo4_monto)) * 0.30);
+            }
+        }
+
+        // 4. Cálculo de la retención para el mes actual
+        $impuesto_pendiente_retener = $impuesto_anual_proyectado - $retenciones_acumuladas_hasta_mes_anterior;
+
+        // Asegurarse de que no se retenga más de lo que se debe o un valor negativo
+        $meses_restantes_incluido_actual = (12 - $mes_actual) + 1;
+        if ($meses_restantes_incluido_actual <= 0) {
+            return 0; // No hay más meses para retener
+        }
+
+        $retencion_mes_actual = $impuesto_pendiente_retener / $meses_restantes_incluido_actual;
+
+        // La retención no debe ser negativa (podría pasar si se retuvo de más en meses anteriores)
+        return max(0, round($retencion_mes_actual, 2));
+    }
+    function CalcularDescuento5taCategoria($sueldoMensual, $fecha)
+    {
+        $UIT = 5350;
+        $ingresoAnual = $sueldoMensual * 12; //Mi proyeccion por mensual
+        $ingresoBonificacion = $sueldoMensual * 2; // Bono
+
+        $ingresoProyeccionAnual = $ingresoAnual + $ingresoBonificacion; //Total de proyeccion anual
+
+        // Deducción estandar de 7 UIT
+        $deduccion = 7 * $UIT;
+
+        // Base imponible anual
+        $baseImponible = max(0, $ingresoProyeccionAnual - $deduccion);
+
+        // Tramos de impuesto anual según UIT multiples
+        $tramos = [
+            5 * $UIT => 0.08,   // 8% para exceso sobre 0 hasta 5 UIT (en base imponible)
+            20 * $UIT => 0.14,  // 14% para exceso sobre 5 hasta 20 UIT
+            35 * $UIT => 0.17,  // 17% para exceso sobre 20 hasta 35 UIT
+            45 * $UIT => 0.20,  // 20% para exceso sobre 35 hasta 45 UIT
+            PHP_INT_MAX => 0.30 // 30% para exceso sobre 45 UIT
+        ];
+
+        $fechaCarbon = Carbon::parse($fecha);
+        $numeroMes = $fechaCarbon->month;
+
+        $impuesto = 0;
+        $limiteAnterior = 0;
+
+        foreach ($tramos as $limite => $tasa) {
+            if ($baseImponible > $limiteAnterior) {
+                $exceso = min($baseImponible, $limite) - $limiteAnterior;
+                $impuesto += $exceso * $tasa;
+                $limiteAnterior = $limite;
+            } else {
+                break;
+            }
+        }
+        $retencionBase = round($impuesto / 12, 2);
+
+        // Obtener el mes (1 a 12) desde la fecha (formato yyyy-mm-dd)
+        // $numeroMes = (int)date('n', strtotime($fecha));
+
+        $retencion = 0.0;
+
+        if ($numeroMes >= 1 && $numeroMes <= 3) { // enero-marzo /12
+            $retencion = $retencionBase;
+        } elseif ($numeroMes == 4) {
+            // Abril: (impuesto anual - (retencionBase * 3)) / 9
+            $retencion = ($impuesto - ($retencionBase * 3)) / 9;
+        } elseif ($numeroMes >= 5 && $numeroMes <= 7) {
+            // Mayo a julio: (impuesto anual - (retencionBase * 4)) / 8
+            $retencion = ($impuesto - ($retencionBase * 4)) / 8;
+        } elseif ($numeroMes == 8) {
+            // Agosto: (impuesto anual - (retencionBase * 7)) / 5
+            $retencion = ($impuesto - ($retencionBase * 7)) / 5;
+        } elseif ($numeroMes >= 9 && $numeroMes <= 11) {
+            // Septiembre a noviembre: (impuesto anual - (retencionBase * 8)) / 4
+            $retencion = ($impuesto - ($retencionBase * 8)) / 4;
+        } elseif ($numeroMes == 12) {
+            // Diciembre: impuesto anual - (retencionBase * 11)
+            $retencion = $impuesto - ($retencionBase * 11);
+        } else {
+            // En caso de mes inválido, regresamos 0
+            $retencion = 0.0;
+        }
+
+        return round($retencion, 2);
+
+
+        // Retornamos el impuesto mensual que se debe descontar
+        // return round(($impuesto / 12),2);
+    }
+
 
     //FUNCION PARA CALCULAR ADELANTOS
     public function Adelantos($idDatoContable, $dia_inicio, $dia_fin)

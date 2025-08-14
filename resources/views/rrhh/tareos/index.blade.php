@@ -22,7 +22,7 @@
                     <button class="nav-link" id="profile-tab" data-toggle="tab" data-target="#hora_extra" type="button" role="tab" aria-controls="profile" aria-selected="false">Horas extras</button>
                   </li> --}}
             </ul>
-    
+
             <div class="tab-content" id="pills-tabContent">
                 {{-- Tareo por Router--}}
                 <div class="tab-pane fade show active my-4" id="router" role="tabpanel" aria-labelledby="home-tab">
@@ -36,17 +36,17 @@
                         @include('rrhh.tareos.tipo_registro.individual')
                     </div>
                 </div>
-               {{--  <div class="tab-pane fade my-4" id="hora_extra" role="tabpanel" aria-labelledby="profile-tab">
+                {{-- <div class="tab-pane fade my-4" id="hora_extra" role="tabpanel" aria-labelledby="profile-tab">
                     <div class="container">
                         @include('rrhh.tareos.tipo_registro.horaextra')
-                    </div>  
+                    </div>
                 </div> --}}
             </div>
-        </div> 
+        </div>
 
 @include('rrhh.tareos.modales.tareo_individual')
 @include('rrhh.tareos.modales.horas_extras')
-@stop  
+@stop
 
 @section('js')
     <script src="{{asset('js/tareos/registro.js')}}"></script>
