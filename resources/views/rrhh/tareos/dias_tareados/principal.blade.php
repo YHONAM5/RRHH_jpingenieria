@@ -43,6 +43,7 @@
                                 $fechaActual->add($intervalo);
                             @endphp
                         @endfor
+                        <th>TOTAL HORAS</th>
                         <th>TOTAL TAREADO</th>
                     </tr>
                 </thead>
@@ -84,7 +85,7 @@
                                     @if ($tareo->idContrato == $item->idContrato && $item->Fecha == $date)
                                             @php
                                                 $tiempo = tiempoTrabajado($item->HoraDeIngreso, $item->HoraDeSalida, $item->HoraDeInicioDeAlmuerzo, $item->HoraDeFinDeAlmuerzo);
-                                                $tiempoSubTotal = tiempoTrabajadoTotal($tiempo,$item->HoraDeIngreso,$item->HoraDeSalida,$item->HoraDeInicioDeAlmuerzo,$item->HoraDeFinDeAlmuerzo);
+                                                $tiempoSubTotal = tiempoTrabajadoTotal($item->HoraDeIngreso,$item->HoraDeSalida,$item->HoraDeInicioDeAlmuerzo,$item->HoraDeFinDeAlmuerzo);
                                                 $totalHorasTareados += $tiempoSubTotal;
                                                 $diaDeLaSemana = Carbon\Carbon::parse($item->Fecha);
                                                 $esSabado = $diaDeLaSemana->dayOfWeek === Carbon\Carbon::SATURDAY;
@@ -150,6 +151,14 @@
                                     @endphp
                                 </td>
                             @endfor
+                            <td class="bg-info">
+                                {{-- Mostrando total de horas tareadas --}}
+                                @php
+                                    $horas = floor($totalHorasTareados / 3600);
+                                    $nimutos = floor(($totalHorasTareados % 3600) / 60);
+                                    echo $horas . ':' . $nimutos;
+                                @endphp
+                            </td>
                             <td class="bg-info">
                                 {{-- MOSTRANDO TOTAL DIAS TAREADOS --}}
                                 @php

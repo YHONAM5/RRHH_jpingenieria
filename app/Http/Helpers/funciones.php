@@ -4,6 +4,7 @@ use App\Models\Periodo;
 use App\Models\Tareo;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use PhpParser\Node\Stmt\If_;
 
 function tiempoTrabajado($tiempo1, $tiempo2, $tiempo3, $tiempo4){
 
@@ -16,8 +17,7 @@ function tiempoTrabajado($tiempo1, $tiempo2, $tiempo3, $tiempo4){
 
     return $total;
 }
-function tiempoTrabajadoTotal ($subtoral, $tiempo1, $tiempo2, $tiempo3, $tiempo4){
-    $subtoralInicio = strtotime($subtoral);
+function tiempoTrabajadoTotal ($tiempo1, $tiempo2, $tiempo3, $tiempo4){
     $sub1 = strtotime($tiempo2) - strtotime($tiempo1);
     $sub2 = strtotime($tiempo4) - strtotime($tiempo3);
 
@@ -78,6 +78,49 @@ function calcularDominical($fecha,$contrato){
         'fechaDomingo'=> $domingo,
         'evaluar'=>$evaluar
     ];
+}
+
+function calcularProporcionDias($totalHorasTareadas, $horasRealesTrabajadas) {
+    // Constante: 30 días del mes (base fija)
+    $diasDelMes = 30;
+
+    // Cálculo de la proporción de días trabajados
+    $proporcionDias = ($horasRealesTrabajadas / $totalHorasTareadas) * $diasDelMes;
+
+    return round($proporcionDias, 3);
+}
+
+function toralParaTienda ($idContrato, $fecha_inicio, $fecha_fin){
+    $valor = 0;
+    $total_segundo = 0;
+    $totla_seguntos_limit = 240 * 3600;
+
+    $tareos = Tareo::where('idContrato', $idContrato)
+        ->whereBetween('Fecha', [$fecha_inicio, $fecha_fin])
+        ->orderBy('Fecha', 'asc')
+        ->get();
+
+
+
+    foreach ($tareos as $item) {
+        $hora_incio = $item->HoraDeIngreso;
+        $hora_fin = $item->HoraDeSalida;
+        $hora_almuerzo_in = $item->HoraDeInicioDeAlmuerzo;
+        $hora_almuerzo_fi = $item->HoraDeFinDeAlmuerzo;
+
+        $sub1 = strtotime($hora_fin) - strtotime($hora_incio);
+        $sub2 = strtotime($hora_almuerzo_fi) - strtotime($hora_almuerzo_in);
+        $total_segundo += $sub1 - $sub2;
+        $fecha_inicio = new DateTime($item->Fecha);
+        $dia_semana = $fecha_inicio->format('N');
+        if ($dia_semana == 7){
+            
+        }
+    }
+
+
+
+    return $valor;
 }
 
 function calcularMontoAdicional($dia_inicio, $idContrato, $idEstacion)

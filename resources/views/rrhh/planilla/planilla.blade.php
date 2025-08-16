@@ -248,7 +248,8 @@
                     </td>
                     {{-- TAREO POR ESTACION --}}
                     @php
-                        $total_dias_tareados = 0; // Mover la declaración de la variable fuera del bucle
+                        $total_dias_tareados = 0;
+                        $regimenEs = 0;
                     @endphp
 
                     @foreach ($estaciones as $estacion)
@@ -263,7 +264,7 @@
                                     $item->idContrato,
                                 );
                                 echo $tareo_estacion_value;
-
+                                $regimenEs = $estacion->IdRegimenLaboral;
                                 $total_dias_tareados += floatval($tareo_estacion_value); // Convertir a float y sumar directamente
                             @endphp
                         </td>
@@ -325,6 +326,10 @@
 
                             echo 'S/' . number_format($sueldo_bruto, 2);
                             $totalSueldoBruto += $sueldo_bruto;
+
+                            // if ($regimenEs == 1){
+                            //     $valor = calcularProporcionDias()
+                            // }
                         @endphp
                     </td>
                     {{-- ... --}}
