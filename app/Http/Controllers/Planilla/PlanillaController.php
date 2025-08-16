@@ -44,14 +44,15 @@ class PlanillaController extends Controller
             ->join('datoscontables', 'contrato.idContrato', '=', 'datoscontables.idContrato')
             ->join('estaciondetrabajo', 'contrato.idEstacionTrabajo', '=', 'estaciondetrabajo.idEstacionDeTrabajo')
             ->join('fondodepension', 'empleado.idFondoDePension', '=', 'fondodepension.idFondoDePension')
+            ->join('regimen_laboral', 'estaciondetrabajo.idRegimenLaboral', '=', 'regimen_laboral.idRegimenLaboral')
             ->whereIn('tareo.idDatoContable', function($query) use ($dia_inicio, $dia_fin) {
                 $query->select(DB::raw('MAX(idDatoContable)'))
                     ->from('tareo')
                     ->whereBetween('Fecha', [$dia_inicio, $dia_fin])
                     ->groupBy('idContrato');
             })
-            ->groupBy('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'fondodepension.NombreEntidad', 'datoscontables.SueldoBase', 'persona.Email')
-            ->select('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'persona.Email', 'fondodepension.NombreEntidad', DB::raw('MAX(datoscontables.SueldoBase) AS SueldoBase'))
+            ->groupBy('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'fondodepension.NombreEntidad', 'datoscontables.SueldoBase', 'persona.Email','regimen_laboral.idRegimenLaboral')
+            ->select('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'persona.Email', 'fondodepension.NombreEntidad', 'regimen_laboral.idRegimenLaboral', DB::raw('MAX(datoscontables.SueldoBase) AS SueldoBase'))
             ->get();
 
         $datos_contables = Datoscontable::all();
@@ -113,17 +114,7 @@ class PlanillaController extends Controller
                 }
             }
         }
-        $total_dias = 0;
-        foreach ($tareo as $item) {
-            $dia = $item->idCondicionDeTareo;
-            //Condiciones donde cuenta el sistema como dia trabajado
-            $condiciones = [1,2,6,8,9,11,12,13,15];
-            foreach ($condiciones as $id) {
-                if($dia == $id){
-                    $total_dias++;
-                }
-            }
-        }
+
 
         if ($total_horas !== 0) {
             $monto_adicional = calcularMontoAdicional($dia_inicio, $idContrato, $idEstacion);
@@ -136,25 +127,37 @@ class PlanillaController extends Controller
             }
             // codigo para los casos especificos
             if ($idRegimenLaboral === 2) {
-		 $total_horas = floor($total_horas * 2) / 2;
-		 $total_horas = number_format($total_horas, 1, '.', '');
-		}
+            $total_horas = floor($total_horas * 2) / 2;
+            $total_horas = number_format($total_horas, 1, '.', '');
+            }
 
-		//if ($total_horas == 30.7) {
-		  //  $total_horas = 31;
-		//}
-		    // Redondear hacia arriba o hacia abajo en casos específicos
-        if ($total_horas == 5.3 || $total_horas == 14.1 || $total_horas == 18.3 || $total_horas == 28.3) {
-            $total_horas = floor($total_horas); // Redondea hacia abajo
+            //if ($total_horas == 30.7) {
+            //  $total_horas = 31;
+            //}
+                // Redondear hacia arriba o hacia abajo en casos específicos
+            if ($total_horas == 5.3 || $total_horas == 14.1 || $total_horas == 18.3 || $total_horas == 28.3) {
+                $total_horas = floor($total_horas); // Redondea hacia abajo
+            }
+        }
+
+        // return ($total_horas);
+
+
+
+        $total_dias = 0;
+        foreach ($tareo as $item) {
+            $dia = $item->idCondicionDeTareo;
+            //Condiciones donde cuenta el sistema como dia trabajado
+            $condiciones = [1,2,6,8,9,11,12,13,15];
+            foreach ($condiciones as $id) {
+                if($dia == $id){
+                    $total_dias++;
+                }
+            }
         }
 
 
-
-
-        }
-
-    //    return ($total_horas);
-       return ($total_dias);
+        return ($total_dias);
     }
     public function DescansosProgramados($idContrato, $fecha_inicio, $fecha_fin){
         $idCondicionDescansoProgramado = 7;
@@ -167,6 +170,15 @@ class PlanillaController extends Controller
     }
     public function DiasDeFalta($idContrato, $fecha_inicio, $fecha_fin){
         $idCondicionDescansoProgramado = 3;
+
+        $cantidad = Tareo::where('idContrato', $idContrato)
+            ->where('idCondicionDeTareo', $idCondicionDescansoProgramado)
+            ->whereBetween('Fecha', [$fecha_inicio, $fecha_fin])
+            ->count();
+        return $cantidad;
+    }
+    public function DiasDeTardanza($idContrato, $fecha_inicio, $fecha_fin){
+        $idCondicionDescansoProgramado = 2;
 
         $cantidad = Tareo::where('idContrato', $idContrato)
             ->where('idCondicionDeTareo', $idCondicionDescansoProgramado)

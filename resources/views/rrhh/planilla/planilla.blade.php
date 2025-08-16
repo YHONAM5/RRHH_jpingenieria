@@ -307,6 +307,13 @@
                                 $dia_inicio,
                                 $dia_fin,
                             );
+                            $dias_tardanza = $descansos_programados_obj->DiasDeTardanza(
+                                $item->idContrato,
+                                $dia_inicio,
+                                $dia_fin,
+                            );
+
+
                             // 2. Calcular el total de días justificados (trabajados + descansos programados)
                             // $total_dias_tareados ya contiene los días trabajados.
                             $dias_justificados = $total_dias_tareados + $dias_descanso_programado;
@@ -314,12 +321,37 @@
                             // 3. Calcular el sueldo bruto normalizado.
                             // El sueldo base solo se ve afectado si los días justificados son menores a los días del período.
                             // Esto cubre FALTAS INJUSTIFICADAS (días que no son ni trabajo ni descanso programado).
-                            if ($dias_justificados == $num_dias) {
-                                $sueldo_bruto = $sueldo_base;
-                            } else {
-                                $sueldo_por_dia = $sueldo_base / $divisor_dias;
-                                $sueldo_bruto = $sueldo_base - $sueldo_por_dia * $dias_faltas;
+
+
+
+
+                            if($item->idRegimenLaboral == 1){
+                                if(($dias_faltas + $dias_tardanza) == 0){
+                                    $sueldo_bruto = $sueldo_base;
+                                }else {
+                                    $sueldo_por_dia = $sueldo_base / $divisor_dias;
+                                    $descuento_por_falta = $sueldo_por_dia * $dias_faltas;
+                                    $total_descuento = calcularTotalDescuetoRegimen1($sueldo_base, $item->idContrato, $dia_inicio, $dia_fin) + $descuento_por_falta;
+                                    $sueldo_bruto = $sueldo_base - $total_descuento;
+                                }
+                            } elseif ($item->idRegimenLaboral == 2) {
+                                if ($dias_justificados == $num_dias) {
+                                    $sueldo_bruto = $sueldo_base;
+                                } else {
+                                    $sueldo_por_dia = $sueldo_base / $divisor_dias;
+                                    $sueldo_bruto = $sueldo_base - $sueldo_por_dia * $dias_faltas;
+                                }
                             }
+
+
+                            // if ($dias_justificados == $num_dias) {
+                            //         $sueldo_bruto = $sueldo_base;
+                            // } else {
+                            //     $sueldo_por_dia = $sueldo_base / $divisor_dias;
+                            //     $sueldo_bruto = $sueldo_base - $sueldo_por_dia * $dias_faltas;
+                            // }
+
+
                             // NOTA: Si tu período es de 30 días pero el ciclo 14/7 a veces suma 31 días (ej. 24 trabajados + 7 descanso),
                             // el sueldo bruto no debe exceder el sueldo base. Por eso no se multiplica si es mayor.
                             // El sueldo base es el PAGO FIJO por cumplir el régimen.
@@ -485,7 +517,7 @@
                                 $sueldo_base,
                                 $item->idContrato,
                                 $dia_inicio,
-                                $dia_fin,
+                                $dia_fin
                             );
                             echo 'S/' . $horas_extras_value;
                             $totalHorasExtras += $horas_extras_value;

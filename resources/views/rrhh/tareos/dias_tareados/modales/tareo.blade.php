@@ -37,6 +37,7 @@
                             <select name="condicionTareo" id="condicionTareo" class="form-control" required>
                                 <option value="" id="selector_condicion" hidden>Seleccione Condicion</option>
                                 @foreach ($condicionTareo as $item)
+                                    @continue($item->NombreCondicionDeTareo === 'NORMAL')
                                     <option value="{{$item->idCondicionDeTareo}}">{{$item->NombreCondicionDeTareo}}</option>
                                 @endforeach
                             </select>

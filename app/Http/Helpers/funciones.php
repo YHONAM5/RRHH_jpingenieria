@@ -80,49 +80,103 @@ function calcularDominical($fecha,$contrato){
     ];
 }
 
-function calcularProporcionDias($totalHorasTareadas, $horasRealesTrabajadas) {
-    // Constante: 30 días del mes (base fija)
-    $diasDelMes = 30;
+//funcion para regimen normal = 1
+function sueldoBrutoregimen1($sueldo_base, $idContrato, $fecha_inicio, $fecha_fin){
+    // $registros = Tareo::where('idContrato', $idContrato)
+    //     ->whereBetween('Fecha', [$fecha_inicio, $fecha_fin])
+    //     ->where('idCondicionDeTareo', 2)
+    //     ->get();
+    // $tardanza = $registros->HoraDeIngreso;
+    $sueldo_por_dia = $sueldo_base / 30;
+    $sueldo_por_hora = $sueldo_por_dia / 8;
 
-    // Cálculo de la proporción de días trabajados
-    $proporcionDias = ($horasRealesTrabajadas / $totalHorasTareadas) * $diasDelMes;
+    $descuento_total = 0;
 
-    return round($proporcionDias, 3);
-}
-
-function toralParaTienda ($idContrato, $fecha_inicio, $fecha_fin){
-    $valor = 0;
-    $total_segundo = 0;
-    $totla_seguntos_limit = 240 * 3600;
-
-    $tareos = Tareo::where('idContrato', $idContrato)
+    $registros = Tareo::where('idContrato', $idContrato)
         ->whereBetween('Fecha', [$fecha_inicio, $fecha_fin])
-        ->orderBy('Fecha', 'asc')
+        ->where('idCondicionDeTareo', 2)
         ->get();
 
+    foreach ($registros as $registro) {
+        $fecha = Carbon::parse($registro->Fecha);
+        $dia_semana = $fecha->dayOfWeek; // 0 = domingo, 6 = sábado
 
+        // Ignorar domingos
+        if ($dia_semana === 0) {
+            continue;
+        }
 
-    foreach ($tareos as $item) {
-        $hora_incio = $item->HoraDeIngreso;
-        $hora_fin = $item->HoraDeSalida;
-        $hora_almuerzo_in = $item->HoraDeInicioDeAlmuerzo;
-        $hora_almuerzo_fi = $item->HoraDeFinDeAlmuerzo;
+        // Convertir HoraDeIngreso a Carbon
+        $hora_ingreso = Carbon::createFromFormat('H:i:s', $registro->HoraDeIngreso);
+        $hora_inicio = Carbon::createFromTime(8, 0, 0);
+        $hora_tolerancia = Carbon::createFromTime(8, 15, 0);
 
-        $sub1 = strtotime($hora_fin) - strtotime($hora_incio);
-        $sub2 = strtotime($hora_almuerzo_fi) - strtotime($hora_almuerzo_in);
-        $total_segundo += $sub1 - $sub2;
-        $fecha_inicio = new DateTime($item->Fecha);
-        $dia_semana = $fecha_inicio->format('N');
-        if ($dia_semana == 7){
-            
+        // Si llegó tarde
+        if ($hora_ingreso->gt($hora_tolerancia)) {
+            // Calcular horas completas de tardanza
+            $horas_tarde = floor($hora_ingreso->diffInMinutes($hora_inicio) / 60);
+
+            // Ajuste para sábado (solo 5.5h de trabajo)
+            $horas_laborales = ($dia_semana === 6) ? 5.5 : 8;
+
+            // No descontar más de lo trabajado
+            $horas_tarde = min($horas_tarde, $horas_laborales);
+
+            $descuento = $horas_tarde * $sueldo_por_hora;
+            $descuento_total += $descuento;
+        }
+    }
+    return number_format($descuento_total, 2);
+}
+
+function calcularTotalDescuetoRegimen1($sueldo_base, $idContrato, $fecha_inicio, $fecha_fin)
+{
+    // 1. Calcular el valor de una hora de trabajo.
+    $sueldo_por_hora = ($sueldo_base / 30) / 8;
+
+    // 2. Obtener los registros de tardanza.
+    $registrosDeTardanza = Tareo::where('idContrato', $idContrato)
+        ->whereBetween('Fecha', [$fecha_inicio, $fecha_fin])
+        ->where('idCondicionDeTareo', 2)
+        ->get();
+
+    $descuentoTotalAcumulado = 0;
+    // 4. Iterar sobre cada tardanza.
+    foreach ($registrosDeTardanza as $tareo) {
+        $horaDeIngreso = Carbon::createFromTimeString($tareo->HoraDeIngreso);
+        $horasDeSancion = 0;
+
+        if ($horaDeIngreso > 9 && $horaDeIngreso <10){
+            $horasDeSancion = 1;
+        } elseif ($horaDeIngreso > 9 && $horaDeIngreso <10){
+            $horasDeSancion = 2;
+        } elseif ($horaDeIngreso > 10 && $horaDeIngreso <11 ) {
+            $horasDeSancion = 3;
+        } elseif ($horaDeIngreso > 11 && $horaDeIngreso <12 ) {
+            $horasDeSancion = 4;
+        } elseif ($horaDeIngreso > 12 && $horaDeIngreso <13 ) {
+            $horasDeSancion =5;
+        } else {
+            $horasDeSancion = 0;
+        }
+
+        // Si se determinó una sanción, se acumula el descuento.
+        if ($horasDeSancion > 0) {
+            // Opcional: Limitar la sanción a las horas de la jornada para evitar descuentos excesivos.
+            $horasDeSancion = min($horasDeSancion, 8.5); // No descontar más de 8.5 horas
+
+            $descuentoDelDia = $horasDeSancion * $sueldo_por_hora;
+            $descuentoTotalAcumulado += $descuentoDelDia;
         }
     }
 
-
-
-    return $valor;
+    // 5. Devolver el monto total del descuento.
+    return $descuentoTotalAcumulado;
 }
 
+function estaEstacionEsA($idContrato){
+
+}
 function calcularMontoAdicional($dia_inicio, $idContrato, $idEstacion)
     {
         $fecha_inicio = new DateTime($dia_inicio);

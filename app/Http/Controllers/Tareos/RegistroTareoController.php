@@ -76,10 +76,17 @@ class RegistroTareoController extends Controller
 
             $fecha = Carbon::parse($fecha_registro);
 
+            // Buscar el próximo día 15
+            $dia15 = $fecha->copy()->day <= 15
+                ? $fecha->copy()->day(15)
+                : $fecha->copy()->addMonth()->day(15);
+
+            // Calcular la diferencia en días (incluyendo ambos extremos)
+            $dias_trabajados = $fecha->diffInDays($dia15) + 1;
 
 
-            $dias_trabajados = $fecha->daysInMonth; // Número de días trabajados a registrar
-
+            // $dias_trabajados = $fecha->daysInMonth;
+            
             $currentFecha = $fecha; // Variable para hacer seguimiento de la fecha actual
 
             $dias_registrados = 0; // Variable para hacer seguimiento de los días trabajados registrados
