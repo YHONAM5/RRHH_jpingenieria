@@ -326,13 +326,16 @@
 
 
                             if($item->idRegimenLaboral == 1){
-                                if(($dias_faltas + $dias_tardanza) == 0){
+                                if($dias_faltas == 0 && $dias_tardanza == 0){
                                     $sueldo_bruto = $sueldo_base;
                                 }else {
                                     $sueldo_por_dia = $sueldo_base / $divisor_dias;
-                                    $descuento_por_falta = $sueldo_por_dia * $dias_faltas;
-                                    $total_descuento = calcularTotalDescuetoRegimen1($sueldo_base, $item->idContrato, $dia_inicio, $dia_fin) + $descuento_por_falta;
-                                    $sueldo_bruto = $sueldo_base - $total_descuento;
+                                    $totalDescuentoAplicada = ($sueldo_por_dia * $dias_faltas) + calcularTotalHorasTAreasoParaRegimen1($sueldo_base, $item->idContrato, $dia_inicio, $dia_fin);;
+
+                                    $sueldo_bruto = $sueldo_base - $totalDescuentoAplicada;
+                                    // $horas = floor($totalHorasTareados / 3600);
+                                    // $nimutos = floor(($totalHorasTareados % 3600) / 60);
+                                    // $sueldo_bruto = $sueldo_base - $total_descuento;
                                 }
                             } elseif ($item->idRegimenLaboral == 2) {
                                 if ($dias_justificados == $num_dias) {

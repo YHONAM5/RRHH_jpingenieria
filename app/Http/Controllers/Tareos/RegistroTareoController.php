@@ -86,7 +86,7 @@ class RegistroTareoController extends Controller
 
 
             // $dias_trabajados = $fecha->daysInMonth;
-            
+
             $currentFecha = $fecha; // Variable para hacer seguimiento de la fecha actual
 
             $dias_registrados = 0; // Variable para hacer seguimiento de los días trabajados registrados
@@ -158,7 +158,7 @@ class RegistroTareoController extends Controller
                                 $tareo->HoraDeInicioDeAlmuerzo = '00:00';
                                 $tareo->HoraDeFinDeAlmuerzo = '00:00';
                                 $tareo->HoraDeSalida = '13:30';
-                            } elseif($dayOfWeek == 7){
+                            } elseif($dayOfWeek == 0){
                                 $tareo->HoraDeIngreso = $hora_inicio;
                                 $tareo->HoraDeInicioDeAlmuerzo = '00:00';
                                 $tareo->HoraDeFinDeAlmuerzo = '00:00';

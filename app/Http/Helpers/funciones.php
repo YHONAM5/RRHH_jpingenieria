@@ -3,6 +3,7 @@
 use App\Models\Periodo;
 use App\Models\Tareo;
 use Carbon\Carbon;
+use Carbon\CarbonInterval;
 use Carbon\CarbonPeriod;
 use PhpParser\Node\Stmt\If_;
 
@@ -140,24 +141,34 @@ function calcularTotalDescuetoRegimen1($sueldo_base, $idContrato, $fecha_inicio,
         ->where('idCondicionDeTareo', 2)
         ->get();
 
-    $descuentoTotalAcumulado = 0;
+    $descuentoTotalAcumulado = 0.0;
+
+    // 3. Definir los umbrales clave una sola vez.
+    $horaTolerancia = Carbon::createFromTimeString('08:15:00');
+    $horaInicioSancionMultiple = Carbon::createFromTimeString('09:00:00');
+
     // 4. Iterar sobre cada tardanza.
     foreach ($registrosDeTardanza as $tareo) {
         $horaDeIngreso = Carbon::createFromTimeString($tareo->HoraDeIngreso);
         $horasDeSancion = 0;
 
-        if ($horaDeIngreso > 9 && $horaDeIngreso <10){
+        // --- LÓGICA DE CÁLCULO DINÁMICO ---
+
+        // Solo se aplica sanción si la llegada es posterior a la tolerancia (08:15).
+        if ($horaDeIngreso->isAfter($horaTolerancia)) {
+
+            // Paso A: Todos los que llegan después de las 08:15 tienen, como mínimo, 1 hora de sanción.
             $horasDeSancion = 1;
-        } elseif ($horaDeIngreso > 9 && $horaDeIngreso <10){
-            $horasDeSancion = 2;
-        } elseif ($horaDeIngreso > 10 && $horaDeIngreso <11 ) {
-            $horasDeSancion = 3;
-        } elseif ($horaDeIngreso > 11 && $horaDeIngreso <12 ) {
-            $horasDeSancion = 4;
-        } elseif ($horaDeIngreso > 12 && $horaDeIngreso <13 ) {
-            $horasDeSancion =5;
-        } else {
-            $horasDeSancion = 0;
+
+            // Paso B: Si además llegan después de las 09:00, se calculan las horas adicionales.
+            if ($horaDeIngreso->isAfter($horaInicioSancionMultiple)) {
+                // Calculamos cuántas horas *completas* han pasado desde las 09:00.
+                // diffInHours() devuelve el número de horas completas transcurridas.
+                $horasAdicionales = $horaInicioSancionMultiple->diffInHours($horaDeIngreso);
+
+                // Sumamos estas horas adicionales a la hora base de sanción.
+                $horasDeSancion += $horasAdicionales;
+            }
         }
 
         // Si se determinó una sanción, se acumula el descuento.
@@ -174,9 +185,59 @@ function calcularTotalDescuetoRegimen1($sueldo_base, $idContrato, $fecha_inicio,
     return $descuentoTotalAcumulado;
 }
 
-function estaEstacionEsA($idContrato){
+function calcularTotalHorasTAreasoParaRegimen1($sueldobase, $idContrato,$fechaInici,$fechafin){
+
+
+    $totalDeMinFaltantes = 0;
+    $pagoPorHora = ($sueldobase / 30) / 8;
+
+    $tareos = Tareo::whereBetween('Fecha', [$fechaInici, $fechafin])
+               ->where('idContrato', $idContrato)
+               ->where('idCondicionDeTareo', 2)
+               ->get();
+    foreach ($tareos as $item){
+        $totalDeMinFaltantes += calcularDiferenciaHoras($item);
+    }
+    $totalDeHorasTareodos = $totalDeMinFaltantes / 60;
+    $totalDeMinutos = $totalDeMinFaltantes % 60;
+
+    return $totalDeHorasTareodos * $pagoPorHora;
 
 }
+function calcularDiferenciaHoras(Tareo $tareo)
+{
+
+    $horaDeTolerancia = Carbon::parse('08:15:00')->format('H:i');
+
+    $esSabado = $tareo->Fecha->isSaturday();
+    $esDomigo = $tareo->Fecha->isSunday();
+    $minutosRequeridos = $esSabado ? (5 * 60 + 30) : (8 * 60 + 30);
+
+    $fecha = $tareo->Fecha->toDateString();
+    $ingreso = Carbon::parse($tareo->HoraDeIngreso);
+    $salida = Carbon::parse($tareo->HoraDeSalida);
+    $inicioAlmuerzo = Carbon::parse($tareo->HoraDeInicioDeAlmuerzo);
+    $finAlmuerzo = Carbon::parse($tareo->HoraDeFinDeAlmuerzo);
+
+    $minutosAlmuerzo = $inicioAlmuerzo->diffInMinutes($finAlmuerzo);
+    $minutosJornadaTotal = $ingreso->diffInMinutes($salida);
+    $minutosTrabajados = $minutosJornadaTotal - $minutosAlmuerzo;
+
+    $diferencia = $minutosRequeridos - $minutosTrabajados;
+
+    return $diferencia;
+    // Formateamos la diferencia para una visualización amigable (ej: "+00:30:00" o "-01:15:00")
+    // $signo = $diferenciaEnMinutos >= 0 ? '+' : '-';
+    // $diferenciaFormateada = $signo . CarbonInterval::minutes(abs($diferenciaEnMinutos))->cascade()->format('%H:%I:%S');
+    // return [
+    //     'minutos_trabajados' => $minutosTrabajados,
+    //     'minutos_requeridos' => $minutosRequeridos,
+    //     'diferencia_minutos' => $diferenciaEnMinutos,
+    //     'diferencia_formato' => $diferenciaFormateada,
+    // ];
+}
+
+
 function calcularMontoAdicional($dia_inicio, $idContrato, $idEstacion)
     {
         $fecha_inicio = new DateTime($dia_inicio);
