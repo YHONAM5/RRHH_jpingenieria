@@ -43,6 +43,7 @@
                                 $fechaActual->add($intervalo);
                             @endphp
                         @endfor
+                        <th>TOTAL HORAS</th>
                         <th>TOTAL TAREADO</th>
                     </tr>
                 </thead>
@@ -84,40 +85,51 @@
                                     @if ($tareo->idContrato == $item->idContrato && $item->Fecha == $date)
                                             @php
                                                 $tiempo = tiempoTrabajado($item->HoraDeIngreso, $item->HoraDeSalida, $item->HoraDeInicioDeAlmuerzo, $item->HoraDeFinDeAlmuerzo);
-                                                $tiempoSubTotal = tiempoTrabajadoTotal($tiempo,$item->HoraDeIngreso,$item->HoraDeSalida,$item->HoraDeInicioDeAlmuerzo,$item->HoraDeFinDeAlmuerzo);
+                                                $tiempoSubTotal = tiempoTrabajadoTotal($item->HoraDeIngreso,$item->HoraDeSalida,$item->HoraDeInicioDeAlmuerzo,$item->HoraDeFinDeAlmuerzo);
                                                 $totalHorasTareados += $tiempoSubTotal;
                                                 $diaDeLaSemana = Carbon\Carbon::parse($item->Fecha);
                                                 $esSabado = $diaDeLaSemana->dayOfWeek === Carbon\Carbon::SATURDAY;
                                                 $regimen_laboral = $item->idRegimenLaboral;
                                                 $idCondicion = $item->idCondicionDeTareo;
+                                                $leyendaTareo = new \App\Http\Controllers\Tareos\TareoController();
+
+                                                $leyendaTareo_value = $leyendaTareo->leyendaTareo($idCondicion);
+                                                $colorClass = match ($leyendaTareo_value) {
+                                                    'DP' => 'btn-info',
+                                                    'N' => 'btn-success',
+                                                    'F' => 'btn-warning',
+                                                    'F.TJ' => 'btn-light',
+                                                    'D.TJ' => 'btn-primary',
+                                                    default => 'btn-secondary',
+                                                };
 
                                             @endphp
                                             {{-- EVALUAMOS SI ES SABADO PARA IMPRIMIR AMARILLO SI ES TARDE O VERDE SI ES TEMPRANO --}}
                                             @if (in_array($regimen_laboral, [1]))
                                                 @if ($esSabado)
                                                     @if (strtotime($tiempo) >= strtotime('05:30:00'))
-                                                        <button type="button" class="btn btn-success btn-sm p-0 btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
-                                                            {{ $tiempo }}
+                                                        <button type="button" class="btn {{$colorClass}}  btn-sm btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
+                                                            {{ $tiempo .' '. $leyendaTareo_value}}
                                                         </button>
 
                                                     @else
-                                                        <button type="button" class="btn btn-warning btn-sm p-0 btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
-                                                            {{ $tiempo }}
+                                                        <button type="button" class="btn {{$colorClass}}  btn-sm btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
+                                                            {{ $tiempo .' '. $leyendaTareo_value}}
                                                         </button>
                                                     @endif
                                                 @else
                                                     @if (strtotime($tiempo) >= strtotime('08:30:00'))
-                                                        <button type="button" class="btn btn-success btn-sm p-0 btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
-                                                            {{ $tiempo }}
+                                                        <button type="button" class="btn {{$colorClass}}  btn-sm btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
+                                                            {{ $tiempo .' '. $leyendaTareo_value}}
                                                         </button>
                                                     @else
-                                                        <button type="button" class="btn btn-warning btn-sm p-0 btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
-                                                            {{ $tiempo }}
+                                                        <button type="button" class="btn {{$colorClass}}  btn-sm btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
+                                                            {{ $tiempo .' '. $leyendaTareo_value}}
                                                         </button>
                                                     @endif
                                                 @endif
                                             @else
-                                            @php
+                                            {{-- @php
                                                 $leyendaTareo = new \App\Http\Controllers\Tareos\TareoController();
                                                 $leyendaTareo_value = $leyendaTareo->leyendaTareo($idCondicion);
                                                 $colorClass = match ($leyendaTareo_value) {
@@ -128,7 +140,7 @@
                                                     'D.TJ' => 'btn-primary',
                                                     default => 'btn-secondary',
                                                 };
-                                            @endphp
+                                            @endphp --}}
                                             <button type="button" class="btn {{$colorClass}} btn-tareo" data-toggle="modal" data-nombres="{{ strtoupper($tareo->Nombres.' '.$tareo->ApellidoPaterno.' '.$tareo->ApellidoMaterno) }}" data-target="#tareoModal" data-tareo="{{ $item->idTareo }}" data-fecha="{{ $item->Fecha->format('Y-m-d') }}">
                                                 @php
                                                     echo $leyendaTareo_value;
@@ -150,6 +162,14 @@
                                     @endphp
                                 </td>
                             @endfor
+                            <td class="bg-info">
+                                {{-- Mostrando total de horas tareadas --}}
+                                @php
+                                    $horas = floor($totalHorasTareados / 3600);
+                                    $nimutos = floor(($totalHorasTareados % 3600) / 60);
+                                    echo $horas . ':' . $nimutos;
+                                @endphp
+                            </td>
                             <td class="bg-info">
                                 {{-- MOSTRANDO TOTAL DIAS TAREADOS --}}
                                 @php

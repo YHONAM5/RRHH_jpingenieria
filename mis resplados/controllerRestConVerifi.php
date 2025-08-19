@@ -30,6 +30,8 @@ class RegistroTareoController extends Controller
             $fechas_inicio = $request->input('fechas_inicio_rango', []);
             $fechas_fin = $request->input('fechas_fin_rango', []);
 
+            //verificamos si existen registrosl almenos uno de
+
             $fechas_rango_total = [];
             foreach ($fechas_inicio as $index => $inicio) {
                 $fin = $fechas_fin[$index] ?? null;

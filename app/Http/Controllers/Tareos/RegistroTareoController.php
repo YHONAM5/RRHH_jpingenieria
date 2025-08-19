@@ -69,18 +69,64 @@ class RegistroTareoController extends Controller
             //     }
             // }
 
+
             //unimos todos los días de descanso
             $dias_descansos = array_unique(array_merge($fecha_descanso, $fechas_rango_total));
 
 
             $fecha = Carbon::parse($fecha_registro);
 
+            // Buscar el próximo día 15
+            $dia15 = $fecha->copy()->day <= 15
+                ? $fecha->copy()->day(15)
+                : $fecha->copy()->addMonth()->day(15);
 
-            $dias_trabajados = $fecha->daysInMonth; // Número de días trabajados a registrar
+            // Calcular la diferencia en días (incluyendo ambos extremos)
+            $dias_trabajados = $fecha->diffInDays($dia15) + 1;
+
+
+            // $dias_trabajados = $fecha->daysInMonth;
 
             $currentFecha = $fecha; // Variable para hacer seguimiento de la fecha actual
 
             $dias_registrados = 0; // Variable para hacer seguimiento de los días trabajados registrados
+
+
+            // $currentFechaVerif = $currentFecha->copy(); //Variable colnado para hacer seguimienot de fecha actual
+            // foreach (range(1, $fecha->daysInMonth) as $i) {
+            //     foreach ($contratos as $item) {
+            //         $existe = Tareo::where('Fecha', $currentFechaVerif)
+            //             ->where('idContrato', $item)
+            //             ->exists() ? 1 : 0;
+            //         if($existe == 1){
+            //             return redirect()->route('tareos')->with('error', 'Ya existe almenos un tareo seleccionado.');
+            //         }
+            //     }
+            //     $currentFechaVerif->addDay();
+            // }
+
+
+
+            //verificacion optimizada
+            $inicioMes = $fecha->copy();
+            $finMes = $fecha->copy()->addMonth()->subDay();
+            $periodoDelMes = CarbonPeriod::create($inicioMes, $finMes);
+
+            // Convertimos el periodo a un array de strings con formato 'Y-m-d'.
+            $fechasDelMes = array_map(function ($date) {
+                return $date->toDateString();
+            }, $periodoDelMes->toArray());
+
+
+            //Realizar UNA SOLA consulta para verificar si existe algún tareo.
+            $existeAlgunTareo = Tareo::whereIn('idContrato', $contratos)
+                                    ->whereIn('Fecha', $fechasDelMes)
+                                    ->exists();
+
+            //Validar el resultado.
+            if ($existeAlgunTareo) {
+                return redirect()->route('tareos')->with('error', 'Ya existe al menos un tareo para los contratos y fechas seleccionados.');
+            }
 
             //Iteramos para registrar cada día trabajado
             while ($dias_registrados < $dias_trabajados) {
@@ -112,15 +158,12 @@ class RegistroTareoController extends Controller
                                 $tareo->HoraDeInicioDeAlmuerzo = '00:00';
                                 $tareo->HoraDeFinDeAlmuerzo = '00:00';
                                 $tareo->HoraDeSalida = '13:30';
-                            }
-                            // elseif($dayOfWeek == 7){
-                            //     $tareo->HoraDeIngreso = $hora_inicio;
-                            //     $tareo->HoraDeIngreso = '00:00';
-                            //     $tareo->HoraDeInicioDeAlmuerzo = '00:00';
-                            //     $tareo->HoraDeFinDeAlmuerzo = '00:00';
-                            //     $tareo->HoraDeSalida = '00:00';
-                            // }
-                            else {
+                            } elseif($dayOfWeek == 0){
+                                $tareo->HoraDeIngreso = $hora_inicio;
+                                $tareo->HoraDeInicioDeAlmuerzo = '00:00';
+                                $tareo->HoraDeFinDeAlmuerzo = '00:00';
+                                $tareo->HoraDeSalida = $hora_fin;
+                            } else {
                                 $tareo->HoraDeIngreso = $hora_inicio;
                                 $tareo->HoraDeInicioDeAlmuerzo = '13:00';
                                 $tareo->HoraDeFinDeAlmuerzo = '13:45';
@@ -183,6 +226,7 @@ class RegistroTareoController extends Controller
             return redirect()->route('tareos')->with('error', 'Error al registrar.');
         }
     }
+
 
     public function tareo_individual(Request $request)
     {
