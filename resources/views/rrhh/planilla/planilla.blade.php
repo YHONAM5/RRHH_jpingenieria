@@ -672,7 +672,7 @@
                 <td colspan="{{ $num_estaciones + 5 }}">Total</td>
                 <td>
                     {{-- Total sueldo bruto --}}
-                    {{ 'S/' . $totalSueldoBruto }}
+                    {{ 'S/' . round($totalSueldoBruto, 2) }}
                 </td>
                 <td></td>
                 <td colspan="11">--</td>

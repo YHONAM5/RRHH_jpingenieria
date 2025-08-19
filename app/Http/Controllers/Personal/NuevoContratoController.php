@@ -47,14 +47,14 @@ class NuevoContratoController extends Controller
             $persona->Alergias = $request->input('alergias');
             $persona->save();
             $idPersona = $persona->idPersona;
-    
+            
             $empleado = new Empleado;
             $empleado->idPersona = $idPersona;
             $empleado->idCargo = $request->input('cargo');
             $empleado->idFondoDePension = $request->input('fondo');
             $empleado->save();
             $idEmpleado = $empleado->idEmpleado;
-    
+
             $contrato = new Contrato;
             $contrato->idCondicionDeContrato = 1;
             $contrato->idEmpleado = $idEmpleado;
@@ -63,15 +63,15 @@ class NuevoContratoController extends Controller
             $contrato->idEstacionTrabajo = $request->input('estacion');
             $contrato->save();
             $idContrato = $contrato->idContrato;
-    
+
             $datos_contables = new Datoscontable;
             $datos_contables->SueldoBase = $request->input('sueldo_base');
             $datos_contables->NHijos = $request->input('num_hijos');
-            $datos_contables->idContrato = $idContrato; 
+            $datos_contables->idContrato = $idContrato;
             $datos_contables->pensionAlimenticia = $request->input('pension');
-            $datos_contables->save();  
-    
-            
+            $datos_contables->save();
+
+
             return response()->json(['success' => true], 200);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => 'Ocurrió un error en el servidor.'], 500);
@@ -99,12 +99,12 @@ class NuevoContratoController extends Controller
         $fechaactual = Carbon::now();
         $fechaactual->locale('es');
         $fechaFormateada = $fechaactual->isoFormat('DD [DE] MMMM [DE] YYYY');
- 
+
          $plantillaAWL = storage_path('app/public/docs/contratoJP.docx');
- 
-  
+
+
              $template = new TemplateProcessor($plantillaAWL);
- 
+
              $template->setValue('nombre',strtoupper($persona->Nombres.' '.$persona->ApellidoPaterno.' '.$persona->ApellidoMaterno));
              $template->setValue('dni',$persona->DNI);
              $template->setValue('direccion',$persona->direccion);
@@ -121,13 +121,13 @@ class NuevoContratoController extends Controller
 
              $tempfile = tempnam(sys_get_temp_dir(), 'PHPWord');
              $template->saveAs($tempfile);
-             
+
              $headers = [
                  "Content-Type: application/octet-stream",
              ];
-             
+
              return response()->download($tempfile, $persona->ApellidoPaterno . ' ' . $persona->ApellidoMaterno . ' ' . $persona->Nombres . ' - Contrato.docx', $headers)->deleteFileAfterSend();
- 
+
             } catch (\Exception $e) {
                 // Manejo del error
                 $errorMessage = $e->getMessage();
