@@ -53,6 +53,7 @@ class PlanillaController extends Controller
             })
             ->groupBy('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'fondodepension.NombreEntidad', 'datoscontables.SueldoBase', 'persona.Email','regimen_laboral.idRegimenLaboral')
             ->select('contrato.idContrato', 'tareo.idDatoContable', 'persona.Nombres', 'persona.DNI', 'persona.ApellidoPaterno', 'estaciondetrabajo.NombreEstacionDeTrabajo', 'persona.Email', 'fondodepension.NombreEntidad', 'regimen_laboral.idRegimenLaboral', DB::raw('MAX(datoscontables.SueldoBase) AS SueldoBase'))
+            ->orderBy('estaciondetrabajo.NombreEstacionDeTrabajo', 'asc')
             ->get();
 
         $datos_contables = Datoscontable::all();
@@ -78,7 +79,7 @@ class PlanillaController extends Controller
         $num_estaciones = $estaciones->count();
 
         // Pasar los reintegros a la vista
-        return view('rrhh.planilla.planilla', compact('periodo', 'dia_inicio', 'dia_fin', 'num_dias', 'tareos', 'datos_contables', 'estaciones', 'num_estaciones', 'reintegros'));
+        return view('rrhh.planilla.planilla', compact('periodo', 'dia_inicio', 'dia_fin', 'num_dias', 'tareos', 'datos_contables', 'estaciones', 'num_estaciones', 'reintegros', 'idPeriodo'));
     }
 
     //FUNCION PARA CALCULAR DIAS TAREAODS POR PERSONA
@@ -89,6 +90,21 @@ class PlanillaController extends Controller
             ->where('tareo.idEstacionDeTrabajo', $idEstacion)
             ->where('tareo.idContrato', $idContrato)
             ->get();
+
+        $resultados = Tareo::join('contrato', 'tareo.idContrato', '=', 'contrato.idContrato')
+            ->join('estaciondetrabajo', 'tareo.idEstacionDeTrabajo', '=', 'estaciondetrabajo.idEstacionDeTrabajo')
+            ->join('condiciondetareo', 'tareo.idCondicionDeTareo', '=', 'condiciondetareo.idCondicionDeTareo')
+            ->select(
+                'tareo.idEstacionDeTrabajo',
+                'estaciondetrabajo.NombreEstacionDeTrabajo',
+                DB::raw('COUNT(*) as cantidad')
+            )
+            ->whereBetween('tareo.Fecha', [$dia_inicio, $dia_fin])
+            ->where('tareo.idContrato', $idContrato)
+            ->groupBy('tareo.idEstacionDeTrabajo', 'estaciondetrabajo.NombreEstacionDeTrabajo')
+            ->orderByDesc('cantidad')
+            ->get();
+
 
         $total_horas = 0;
         $monto_adicional = 0;
@@ -288,12 +304,18 @@ class PlanillaController extends Controller
     }
 
     //FUNCION PARA CALCULAR TOTAL DE HORAS EXTRAS
-    public function TotalHorasExtras($sueldo, $idContrato, $dia_inicio, $dia_fin)
+    public function TotalHorasExtras($idContrato, $dia_inicio, $dia_fin)
     {
         $horasExtras = Tareo::join('horasextras', 'tareo.idHorasExtras', '=', 'horasextras.idHorasExtras')
             ->where('tareo.idContrato', $idContrato)
             ->whereBetween('tareo.Fecha', [$dia_inicio, $dia_fin])
             ->get();
+
+        $registro = Tareo::join('datoscontables as d', 'tareo.idContrato', '=', 'd.idContrato')
+            ->where('tareo.idContrato', $idContrato)
+            ->first();
+
+        $sueldo = $registro ? $registro->SueldoBase : 0;
 
         $hora25 = 0;
         $hora35 = 0;

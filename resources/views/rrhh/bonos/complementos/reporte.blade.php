@@ -10,7 +10,7 @@
                 <select class="form-control" name="periodo" id="" onchange="this.form.submit()">
                     <option hidden value="">Seleccione</option>
                     @foreach ($periodos as $item)
-                        <option value="{{ $item->idPeriodo }}">{{ $item->NombrePeriodo }}</option>  
+                        <option value="{{ $item->idPeriodo }}">{{ $item->NombrePeriodo }}</option>
                     @endforeach
                 </select>
             </div>
@@ -21,21 +21,22 @@
     <div class="card-header bg-info">
         <b>Bonos para el periodo</b>
     </div>
-    @if (isset($bonos) && count($bonos) > 0) 
+    @if (isset($bonos) && count($bonos) > 0)
         <div class="card-body">
             <div class="row">
                 <div class="col-md-12">
                     <table class="table table-bordered table-hover" id="tabla-bonos">
                         <thead>
-                            <tr class="bg-warning text-center"> 
+                            <tr class="bg-warning text-center">
                                 <th colspan="6">BONOS</th> <!-- Cambiado de 5 a 6 -->
                             </tr>
                             <tr>
-                                <th>#</th>
+                                <th>N°</th>
                                 <th>Nombres</th>
-                                <th>Reintegro</th>
-                                <th>Bono Declarado</th> <!-- Nueva columna -->
-                                <th>Acci車n</th>
+                                <th>Tipo</th>
+                                <th>Dias correspondientes</th>
+                                <th>Monto</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -43,8 +44,15 @@
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ $item->Nombres }}</td>
-                                    <td>{{ $item->Reintegro }}</td>
-                                    <td>{{ $item->BonoDeclarado }}</td> <!-- Mostrar Bono Declarado -->
+                                    <td>{{ $item->descripcion}}</td>
+                                    <td>{{ $item->CantidadDias }}</td>
+                                    <td>
+                                        @php
+                                            $sueldo_base = $item->SueldoBase;
+                                            $monto = $item->idTipoBono == 1 ? ($sueldo_base / 30)*$item->CantidadDias: $item->Monto;
+                                        @endphp
+                                        {{ round($monto,2) }}
+                                    </td>
                                     <td class="text-center">
                                         <button data-id="{{ $item->idBonos }}" class="btn btn-danger btn-sm btn-eliminar-bono"><i class="fas fa-trash"></i></button>
                                         <a href="{{ route('detalles.bono', ['idPersona' => $item->idPersona, 'idPeriodo' => $idPeriodo]) }}" class="btn btn-info btn-sm"><i class="fas fa-info-circle"></i></a>

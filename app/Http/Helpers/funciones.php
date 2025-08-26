@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Bono;
 use App\Models\Periodo;
 use App\Models\Tareo;
 use Carbon\Carbon;
@@ -467,5 +468,21 @@ function calcularMontoAdicional($dia_inicio, $idContrato, $idEstacion)
         }
 
         return $totalDias;
+    }
+
+    // Funcion para calcular dias de pendiente de pago
+    function diasPendientesDePago($idContrato, $idPeriodo){
+        $bonos = Bono::join('contrato', 'bonos.idContrato', '=', 'contrato.idContrato')
+            ->where('bonos.idPeriodo', $idPeriodo)
+            ->where('bonos.idContrato', $idContrato)
+            ->where('idTipoBono', 1)
+            ->get();
+        $dias_pendientes = 0;
+        $monto_bono = 0;
+        foreach($bonos as $bono){
+            $dias_pendientes += $bono->CantidadDias;
+        }
+
+        return $dias_pendientes;
     }
 ?>

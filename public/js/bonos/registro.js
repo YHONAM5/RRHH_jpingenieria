@@ -22,6 +22,7 @@ function openModalBonos(select) {
 
         const modalTitle = document.querySelector(`${modalTarget} .modal-title`);
         if (modalTitle) {
+            modalTitle.className = 'btn btn-dark';
             modalTitle.textContent = `Registro para: ${selectedText}`;
         }
 

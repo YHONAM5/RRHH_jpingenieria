@@ -200,9 +200,7 @@
 @section('js')
     <script src="{{asset('js/tareos/diastareados.js')}}"></script>
     <script src="{{ asset('js/tareos/mostrar_foto.js') }}"></script>
-    <script src="
-https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js
-"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
     <script>
         const csrfToken = "{{ csrf_token() }}"
         const buscarTareoId = "{{ route('buscarTareoId') }}"
