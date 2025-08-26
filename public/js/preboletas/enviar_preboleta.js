@@ -6,7 +6,7 @@ function setIframeSrc(url) {
         const mensajeInput = document.getElementById('mensaje');
         const idPeriodoInput = document.getElementById('idPeriodo');
         const emailValue = event.target.dataset.email;
-        const mensajeValue = event.target.dataset.mensaje;
+        const mensajeValue = event.target.dataset.mensaje;  
         const idPeriodoValue = event.target.dataset.periodo;
 
         iframe.src = url;
@@ -66,7 +66,7 @@ document.querySelector('#formPreboleta').addEventListener('submit', function (ev
         }
     })
     .catch(function(error) {
-        console.log(error); 
+        console.log(error);
         // Mostrar alerta de error si ocurre un error en la petición con un botón "Aceptar" y el ícono de un correo
         Swal.fire({
             icon: 'error',

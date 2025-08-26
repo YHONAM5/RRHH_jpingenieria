@@ -109,7 +109,7 @@ class RegistroTareoController extends Controller
 
             //verificacion optimizada
             $inicioMes = $fecha->copy();
-            $finMes = $fecha->copy()->addMonth()->subDay();
+            $finMes = $fecha->copy()->day <= 15 ? $fecha->copy()->day(15) : $fecha->copy()->addMonth()->day(15);
             $periodoDelMes = CarbonPeriod::create($inicioMes, $finMes);
 
             // Convertimos el periodo a un array de strings con formato 'Y-m-d'.
@@ -120,8 +120,9 @@ class RegistroTareoController extends Controller
 
             //Realizar UNA SOLA consulta para verificar si existe algún tareo.
             $existeAlgunTareo = Tareo::whereIn('idContrato', $contratos)
-                                    ->whereIn('Fecha', $fechasDelMes)
-                                    ->exists();
+                ->whereIn('Fecha', $fechasDelMes)
+                ->where('idEstacionDeTrabajo', $idEstacion)
+                ->exists();
 
             //Validar el resultado.
             if ($existeAlgunTareo) {

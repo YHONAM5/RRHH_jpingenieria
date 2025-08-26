@@ -80,6 +80,26 @@
                         <input type="time" class="form-control" name="horaSalida" id="horaSalida">
                     </div>
 
+                    {{-- <div class="form-row" id="grupoBonos">
+                        <div class="form-group col-md-6">
+                            <label for="diasPendientes">
+                                <i class="fas fa-calendar-minus"></i> Días Pendientes:
+                            </label>
+                            <input type="number" class="form-control" name="diasPendientes" id="diasPendientes" placeholder="Ej. 3">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="montoBono">
+                                <i class="fas fa-money-bill-wave"></i> Monto de Bono:
+                            </label>
+                            <input type="number" step="0.01" class="form-control" name="montoBono" id="montoBono" placeholder="Ej. 150.50">
+                        </div>
+                        <div class="d-flex justify-content-between w-100">
+                            <button type="button" id="guardarPendientes" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Insertar Pendientes
+                            </button>
+                        </div>
+                    </div> --}}
+
                     <!-- Campos adicionales para condiciones especiales -->
                     {{-- <div class="form-group" id="grupoObservaciones" style="display: none;">
                         <label for="observaciones">
@@ -100,9 +120,9 @@
                     <button type="button" id="btnGuardarTareo" class="btn btn-primary">
                         <i class="fas fa-save"></i> Guardar Cambios
                     </button>
-                    {{-- <button type="button" id="btnEliminarTareo" class="btn btn-danger m-2">
+                    <button type="button" id="btnEliminarTareo" class="btn btn-danger m-2">
                         <i class="fas fa-trash-alt"></i> Eliminar
-                    </button> --}}
+                    </button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
                         <i class="fas fa-times"></i> Cancelar
                     </button>

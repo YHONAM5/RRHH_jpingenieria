@@ -105,6 +105,46 @@ $(document).ready(function(){
         })
     })
 
+    //Nuevo boton para para agregar pendientes de pago segun el tipo de tareo
+    //=========================================================
+    $('#guardarPendientes').on('click', function(){
+        const form = $('#formTareo').serialize()
+
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': csrfToken
+            }
+        });
+
+        $.ajax({
+            url: guardarPendientes,
+            method: 'POST',
+            data: form,
+            success: function(rpta){
+                Swal.fire({
+                    title: 'EXITO',
+                    text: rpta.mensaje,
+                    icon: 'success',
+                    confirmButtonText: 'ACEPTAR'
+                }).then(function(){
+                    location.reload();
+                });
+            },
+            error: function(xhr, status, error){
+                const errorMessage = xhr.responseText; // Obtener el mensaje de error del servidor
+                const errorObj = JSON.parse(errorMessage);
+
+                Swal.fire({
+                    title: 'ATENCION',
+                    text: errorObj.error,
+                    icon: 'warning',
+                    confirmButtonText: 'Aceptar'
+                });
+            }
+        })
+    })
+    //=========================================================
+
     //ELIMINAR TAREO
     $('#btnEliminarTareo').on('click', function(){
         const idTareo = $('#tareo').val(); // Obtener el valor del campo de entrada con el ID "idTareo"
@@ -190,6 +230,8 @@ $(document).ready(function() {
             $('#grupoAlmuerzo').show();
             $('#grupoHoraSalida').show();
 
+            $('#grupoBonos').hide();
+
             mensaje = "Registro normal de asistencia con horarios completos.";
         } else if (selectedValue === '2') { // Tardanza
             $('input[name="horaIngreso"]').val('09:00');
@@ -212,6 +254,7 @@ $(document).ready(function() {
             $('#grupoHoraIngreso').hide();
             $('#grupoAlmuerzo').hide();
             $('#grupoHoraSalida').hide();
+            $('#grupoBonos').hide();
 
             mensaje = "Ausencia del trabajador. No se registran horarios.";
         } else if(selectedValue === '4' || selectedValue === '7' || selectedValue === '14' ){
@@ -224,6 +267,7 @@ $(document).ready(function() {
             $('#grupoHoraIngreso').hide();
             $('#grupoAlmuerzo').hide();
             $('#grupoHoraSalida').hide();
+            $('#grupoBonos').hide();
 
             mensaje = "Descansos justificados. No se registran horarios.";
         } else if (selectedValue === '12') { // Nocturno
@@ -244,6 +288,13 @@ $(document).ready(function() {
             $('input[name="finAlmuerzo"]').val('13:45');
             $('input[name="horaSalida"]').val('17:15');
             mensaje ="Trabajo en dia de descanso. Aplica sobretasa correspondiente.";
+        } else if(selectedValue ==='16'){
+            $('#grupoBonos').show();
+
+            $('#grupoHoraIngreso').hide();
+            $('#grupoAlmuerzo').hide();
+            $('#grupoHoraSalida').hide();
+            $('#btnGuardarTareo').hide();
         } else {
             // Default
             $('input[name="horaIngreso"]').val('00:00');

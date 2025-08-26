@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Tareos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Bono;
 use App\Models\Condiciondetareo;
 use App\Models\Contrato;
 use App\Models\Datoscontable;
@@ -15,6 +16,7 @@ use App\Models\Tareo;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use PhpParser\Node\Stmt\TryCatch;
 
 class TareoController extends Controller
 {
@@ -140,6 +142,28 @@ class TareoController extends Controller
         $tareo = Tareo::find($idTareo);
 
         return $tareo;
+    }
+    public function guardarPendientes(Request $request){
+        //requires para bonos
+        $diasPendientes = $request->input('diasPendientes');
+        $montoBono = $request->input('montoBono');
+
+        //requires para DB
+        $idTareo = $request->input('tareo');
+        $estacion = $request->input('estacion');
+        $idContrato = $request->input('contrato');
+        $fecha = $request->input('fecha');
+        try {
+            $tareo = 
+
+            $bono = new Bono;
+            $bono->idContrato = $idContrato;
+
+            return response()->json(['mensaje' => 'Insert Exitoso. PEndientes de pagos.']);
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+            return response()->json([['error' => $error], 500]);
+        }
     }
 
     public function guardarEditarTareo(Request $request)

@@ -51,7 +51,7 @@ Route::group(['middleware'=> ['auth']], function(){
     //vista de personal inactivo
     Route::get('personal/personalInactivo',[PersonalController::class, 'personalInactivo']);
     Route::get('personal/listarPerfiles',[PersonalController::class, 'listarPerfiles']);
-    
+
     // Candidatos
     Route::prefix('candidatos')->name('candidatos.')->group(function () {
 	    Route::get('/', [App\Http\Controllers\Personal\CandidatoController::class, 'index'])->name('index');
@@ -90,7 +90,7 @@ Route::group(['middleware'=> ['auth']], function(){
         //EDITAR DATOS
         Route::post('editar/datos/personales',[EditarDatosController::class,'datos_personales'])->name('datos.personales');
         Route::post('editar/datos/profesionales',[EditarDatosController::class,'datos_profesionales'])->name('datos.profesionales');
-    
+
     //TAREO
     Route::get('tareos',[TareoController::class, 'index'])->name('tareos');
     Route::post('tareos/estacion',[TareoController::class, 'buscarestacion'])->name('buscarpor.estacion');
@@ -102,12 +102,13 @@ Route::group(['middleware'=> ['auth']], function(){
         //Registrar horas extras
         Route::get('horasextras',[HoraExtraController::class,'horaextra_mostrar'])->name('horasextras');
         Route::post('horasextras',[HoraExtraController::class,'buscar_horasextras'])->name('buscar.horasextras');
-        Route::post('tareos/horaextra',[RegistroTareoController::class,'tareo_horaextra'])->name('tareo.horaextra'); 
+        Route::post('tareos/horaextra',[RegistroTareoController::class,'tareo_horaextra'])->name('tareo.horaextra');
         Route::post('horasextras/eliminar',[HoraExtraController::class,'eliminar_horaextra'])->name('eliminar_horaextra');
-        //Dias Tareados 
+        //Dias Tareados
         Route::get('tareos/diastareados',[TareoController::class,'mostrar_diastareados']);
         Route::post('tareos/diastareados',[TareoController::class,'buscardiastareados'])->name('buscar.diastareados');
         Route::post('tareos/buscar-id-tareo',[TareoController::class, 'buscarTareo'])->name('buscarTareoId');
+        Route::post('tareos/guardar-pendientes',[TareoController::class, 'guardarPendientes'])->name('guardarPendientes');
         Route::post('tareos/guardar-editar',[TareoController::class, 'guardarEditarTareo'])->name('guardarEditarTareo');
         Route::post('tareos/eliminar-tareo',[TareoController::class,'eliminarTareo'])->name('eliminarTareo');
         Route::get('tareos/ver-tareo/estacion/{idEstacion}/{fecha}',[TareoController::class,'verTareoEstacion'])->name('verTareoEstacion');
@@ -116,9 +117,9 @@ Route::group(['middleware'=> ['auth']], function(){
         Route::post('tareos/fotos/resultado',[PruebasTareoController::class,'buscar_fotos_tareos'])->name('buscar.fotos.tareos');
         Route::post('tareos/fotos/registrar',[PruebasTareoController::class,'registrar_fotos'])->name('registrar.prueba');
         Route::post('tareos/fotos/eliminar',[PruebasTareoController::class,'eliminar_fotos']);
-       
 
-    
+
+
     //DESCUENTOS
     Route::get('descuentos',[DescuentosController::class,'index']);
     Route::post('descuentos',[DescuentosController::class,'buscar_descuentos'])->name('buscar.descuento');
@@ -126,7 +127,7 @@ Route::group(['middleware'=> ['auth']], function(){
     Route::post('descuentos/eliminar',[DescuentosController::class,'eliminar_descuento']);
     Route::get('descuentos/detalles/{idPersona}/{idPeriodo}', [DescuentosController::class, 'detallesDescuento'])->name('detalles.descuento');
     Route::get('descuentos/detalles/pdf/{idPersona}/{idPeriodo}', [DescuentosController::class, 'descargarPdf'])->name('descargar.pdf');
-    
+
     // bono
     Route::get('bonos', [BonosController::class, 'index']);
     Route::post('bonos', [BonosController::class, 'buscar_bonos'])->name('buscar.bono');
@@ -134,7 +135,7 @@ Route::group(['middleware'=> ['auth']], function(){
     Route::post('bonos/eliminar', [BonosController::class, 'eliminar_bono']);
     Route::get('bonos/detalles/{idPersona}/{idPeriodo}', [BonosController::class, 'detalles'])->name('detalles.bono');
 
-    
+
 
 
     //HABILITACIONES
@@ -143,7 +144,7 @@ Route::group(['middleware'=> ['auth']], function(){
     Route::post('habilitaciones',[HabilitacionesController::class,'habilitaciones_buscar'])->name('habilitaciones.buscar');
     Route::post('habilitaciones/cursos',[HabilitacionesController::class,'cursos'])->name('cursos');
     Route::post('habilitaciones/empleado',[HabilitacionesController::class,'habilitacion_empleado'])->name('habilitacion.empleado');
-    
+
     //CARGOS
     Route::get('cargos',[CargoController::class,'index']);
     Route::post('nuevo/cargo',[CargoController::class,'nuevo_cargo'])->name('nuevo.cargo');
@@ -167,7 +168,7 @@ Route::group(['middleware'=> ['auth']], function(){
     //PREBOLETA
     Route::post('enviar/preboleta',[PreboletaController::class,'enviar_preboleta'])->name('enviar.preboleta');
 
-   
+
 
     //CTS
     Route::get('cts',[CtsController::class,'index']);

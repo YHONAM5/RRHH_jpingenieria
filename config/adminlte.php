@@ -67,7 +67,7 @@ return [
     'logo_img' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlaIDMWY6VjSnZ1BR2kxj2LgyF2SV3gAOc1IURrv0&s',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
-    'logo_img_xl_class' => 'brand-image-xs',    
+    'logo_img_xl_class' => 'brand-image-xs',
     'logo_img_alt' => 'Admin Logo',
 
     /*
@@ -83,7 +83,7 @@ return [
     |
     */
 
-    'auth_logo' => [ 
+    'auth_logo' => [
         'enabled' => true,
         'img' => [
             'path' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlaIDMWY6VjSnZ1BR2kxj2LgyF2SV3gAOc1IURrv0&s',
@@ -385,6 +385,11 @@ return [
             'icon' => 'fas fa-clock',
         ],
         [
+            'text' => 'Bonos',
+            'url' => 'bonos',
+            'icon' => 'fas fa-money-bill-wave'
+        ],
+        [
             'text' => 'Descuentos',
             'url'  => 'descuentos',
             'icon' => 'fas fa-dolly',
@@ -393,7 +398,7 @@ return [
             'text' => 'Planilla',
             'url'  => 'planilla',
             'icon' => 'fas fa-th-list',
-            
+
         ],
         ['header' => 'SALIDA DE PERSONAL'],
         [

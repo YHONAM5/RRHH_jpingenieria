@@ -226,8 +226,11 @@
                     </td>
                     <td class="sticky-column" style="background-color: #FDFABE; font-weight: bolder;">
                         {{-- Nombres --}}
-                        <a href="#" data-toggle="modal" data-email="{{ $item->Email }}"
-                            data-mensaje="{{ $periodo->Mensaje }}" data-periodo="{{ $periodo->idPeriodo }}"
+                        <a href="#"
+                            data-toggle="modal"
+                            data-email="{{ $item->Email }}"
+                            data-mensaje="{{ $periodo->Mensaje }}"
+                            data-periodo="{{ $periodo->idPeriodo }}"
                             data-target="#modalPreboleta"
                             onclick="setIframeSrc('{{ url('preboleta/' . $periodo->idPeriodo . '/' . $item->idContrato . '/' . $item->idDatoContable) }}')">{{ strtoupper(explode(' ', $item->Nombres)[0]) }}
                             {{ strtoupper($item->ApellidoPaterno) }}</a>
@@ -235,7 +238,7 @@
                     <td class="text-center" style="background-color: #FDFABE; font-weight: bolder;">
                         {{-- Sueldo --}}
                         @php
-                            $sueldo_base = null;
+                            $sueldo_base =  null;
                         @endphp
                         @foreach ($datos_contables as $datos)
                             @if ($datos->idDatosContables == $item->idDatoContable)
@@ -269,10 +272,6 @@
                             @endphp
                         </td>
                     @endforeach
-                    @php
-                        $cantidad_dias_pendientes =
-                            $total_dias_tareados > $num_dias ? $total_dias_tareados - $num_dias : 0; // Calcular dias_pendientes
-                    @endphp
                     <td style="background-color: #CEE3F5; font-weight:bolder;">
                         {{-- Total días tareados --}}
                         {{-- Mostrar dias_pendientes o num_dias --}}
@@ -368,10 +367,13 @@
                         @endphp
                     </td>
                     {{-- ... --}}
+                    @php
+                        $cantidad_dias_pendientes = diasPendientesDePago($item->idContrato, $idPeriodo);
+                    @endphp
                     <td>
                         {{-- Dias pendiente de pago - Dias --}}
                         @if ($cantidad_dias_pendientes > 0)
-                            {{ round($cantidad_dias_pendientes, 2) }}
+                            {{ $cantidad_dias_pendientes }}
                         @else
                             -
                         @endif
@@ -379,16 +381,27 @@
                     </td>
                     <td>
                         {{-- Dias pendiente de pago - Monto --}}
-                        @if ($cantidad_dias_pendientes > 0)
+                        {{-- @if ($cantidad_dias_pendientes > 0)
                             @php
-                                $dias_pendientes = round(($sueldo_base / $num_dias) * $cantidad_dias_pendientes, 2);
+                                $dias_pendientes = round(($sueldo_base / $divisor_dias) * $cantidad_dias_pendientes, 2);
                                 echo 'S/' . $dias_pendientes;
                             @endphp
                         @else
                             @php
                                 $dias_pendientes = 0;
                             @endphp
-                        @endif
+                        @endif --}}
+
+                        @php
+
+                            if ($cantidad_dias_pendientes > 0) {
+                                $dias_pendientes = round(($sueldo_base / $divisor_dias) * $cantidad_dias_pendientes, 2);
+
+                            } else {
+                                $dias_pendientes = 0;
+                            }
+                            echo $dias_pendientes;
+                        @endphp
                     </td>
                     <td>
                         {{-- Descanso medico - Dias --}}
@@ -517,7 +530,6 @@
                         @php
                             $total_horaextra = new \App\Http\Controllers\Planilla\PlanillaController();
                             $horas_extras_value = $total_horaextra->TotalHorasExtras(
-                                $sueldo_base,
                                 $item->idContrato,
                                 $dia_inicio,
                                 $dia_fin

@@ -10,19 +10,17 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class Bono
- * 
+ *
  * @property int $idBonos
  * @property int|null $idContrato
  * @property int|null $idPeriodo
  * @property int|null $idGratificacion
+ * @property int|null $idTipoBono
  * @property float|null $PagoHorasExtras
  * @property float|null $Reintegro
- * @property float|null $BonoDeclarado
- * @property float|null $BonoProduce
- * @property float|null $BonoNoche
- * @property float|null $BonoConductor
- * @property float|null $BonoRotacion
- * @property float|null $BonoAsignacionFamiliar
+ * @property float|null $CantidadDias
+ * @property float|null $Monto
+ * @property string|null $CantidadHoras
  *
  * @package App\Models
  */
@@ -36,27 +34,23 @@ class Bono extends Model
 		'idContrato' => 'int',
 		'idPeriodo' => 'int',
 		'idGratificacion' => 'int',
+        'idTipoBono' => 'int',
 		'PagoHorasExtras' => 'float',
 		'Reintegro' => 'float',
-		'BonoDeclarado' => 'float',
-		'BonoProduce' => 'float',
-		'BonoNoche' => 'float',
-		'BonoConductor' => 'float',
-		'BonoRotacion' => 'float',
-		'BonoAsignacionFamiliar' => 'float'
+        'CantidadDias' => 'float',
+        'Monto' => 'float',
+        'CantidadHoras' => 'datetime'
 	];
 
 	protected $fillable = [
 		'idContrato',
 		'idPeriodo',
 		'idGratificacion',
+        'idTipoBono',
 		'PagoHorasExtras',
 		'Reintegro',
-		'BonoDeclarado',
-		'BonoProduce',
-		'BonoNoche',
-		'BonoConductor',
-		'BonoRotacion',
-		'BonoAsignacionFamiliar'
+		'CantidadDias',
+        'Monto',
+        'CantidadHoras'
 	];
 }

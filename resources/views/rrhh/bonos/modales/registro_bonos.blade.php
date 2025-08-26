@@ -18,7 +18,7 @@
                         </select>
                     </div>
 
-                    <div class="form-group">
+                    {{-- <div class="form-group">
                         <label for="fechaBono">Fecha del Reintegro: <span class="text-danger">*</span></label>
                         <div class="col">
                             <div class="form-group">
@@ -29,9 +29,21 @@
                                 <small class="form-text text-muted">Se registrará el reintegro en esta fecha.</small>
                             </div>
                         </div>
+                    </div> --}}
+
+                    <div>
+                        <label for="tipo-bono">Seleccione tipo bono <span class="text-danger">*</span></label>
+                        <select name="idTipoBono" id="idTipoBono" class="form-control" required>
+                            <option hidden value="">Seleccione</option>
+                            @if (isset($tiposBonos))
+                                @foreach ($tiposBonos as $tipoBono)
+                                    <option value="{{ $tipoBono->idTipoBono }}">{{ $tipoBono->descripcion }}</option>
+                                @endforeach
+                            @endif
+                        </select>
                     </div>
 
-                    <div class="form-group">
+                    {{-- <div class="form-group">
                         <label for="montoBono">Monto del Reintegro: <span class="text-danger">*</span></label>
                         <div class="col">
                             <div class="form-group">
@@ -42,16 +54,36 @@
                                 <small class="form-text text-muted">Ingresa el monto correspondiente al reintegro.</small>
                             </div>
                         </div>
+                    </div> --}}
+
+                    <div class="form-group">
+                        <label for="bonoPorDias">Cantidad de dias <span class="text-danger">*</span></label>
+                        <div class="col">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="span-cambio input-group-text bg-info"><i class="fas fa-calendar"></i></span>
+                                    <input type="number" name="bono_dias" step="any" class="form-control">
+                                </div>
+                                <small class="form-text text-muted">Ingresa la cantidad de dias correspondientes al bono.</small>
+                            </div>
+                            {{-- <div class="form-group">
+                                <div class="input-group">
+                                    <span class="span-cambio input-group-text bg-info"><i class="fas fa-calendar"></i></span>
+                                    <input type="number" name="bono_horas" class="form-control">
+                                </div>
+                                <small class="form-text text-muted">Ingresa la cantidad de horas correspondientes al bono.</small>
+                            </div> --}}
+                        </div>
                     </div>
 
-                    <!-- Nuevo campo para Bono Declarado -->
+
                     <div class="form-group">
                         <label for="bonoDeclarado">Monto del Bono Declarado:</label>
                         <div class="col">
                             <div class="form-group">
                                 <div class="input-group">
                                     <span class="span-cambio input-group-text bg-info"><i class="fas fa-dollar-sign"></i></span>
-                                    <input type="text" name="bono_declarado" class="form-control">
+                                    <input type="number" step="any" name="bono_declarado" class="form-control" placeholder="Opcional">
                                 </div>
                                 <small class="form-text text-muted">Ingresa el monto correspondiente al bono declarado.</small>
                             </div>
