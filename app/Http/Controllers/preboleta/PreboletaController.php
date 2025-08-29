@@ -72,7 +72,7 @@ class PreboletaController extends Controller
     }
 
 
-    public function enviar_preboleta_res(Request $request)
+    public function enviar_preboleta(Request $request)
     {
         $idPeriodo = $request->input('idPeriodo');
         $destinatario = $request->input('destinatario');
@@ -99,7 +99,7 @@ class PreboletaController extends Controller
             return response()->json(['success' => false, 'error' => 'Hubo un problema al enviar la preboleta: ' . $e->getMessage()]);
         }
     }
-    public function enviar_preboleta(Request $request)
+    public function enviar_preboleta_res(Request $request)
     {
         $idPeriodo = $request->input('idPeriodo');
         $destinatario = $request->input('destinatario');
